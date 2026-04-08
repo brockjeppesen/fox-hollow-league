@@ -1,6 +1,20 @@
 "use client";
 
-import { CheckCircle, XCircle } from "lucide-react";
+import { useQuery, useMutation } from "convex/react";
+import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import {
+  CheckCircle,
+  XCircle,
+  ArrowRight,
+  Calendar,
+  Timer,
+  Loader2,
+  Copy,
+  LayoutDashboard,
+} from "lucide-react";
 
 const SLOT_LABELS: Record<string, string> = {
   early: "Early (3:00–3:30)",
@@ -13,19 +27,60 @@ interface ConfirmationScreenProps {
   playerName: string;
   playing: boolean;
   wantsWithNames: string[];
+  wantsWithIds?: Id<"players">[];
   timeSlot?: string;
   notes?: string;
   isUpdate?: boolean;
+  // New multi-week props
+  playerId?: Id<"players">;
+  weekId?: Id<"weeks">;
 }
 
 export function ConfirmationScreen({
   playerName,
   playing,
   wantsWithNames,
+  wantsWithIds,
   timeSlot,
   notes,
   isUpdate,
+  playerId,
+  weekId,
 }: ConfirmationScreenProps) {
+  const router = useRouter();
+  const submissions = useQuery(
+    api.requests.getPlayerSubmissions,
+    playerId ? { playerId } : "skip"
+  );
+  const bulkUpsert = useMutation(api.requests.bulkUpsert);
+  const [copying, setCopying] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // Find other open weeks that haven't been submitted
+  const otherUnsubmitted =
+    submissions?.filter((s) => !s.submitted && s.weekId !== weekId) ?? [];
+
+  const handleCopyToAll = async () => {
+    if (!playerId || otherUnsubmitted.length === 0) return;
+    setCopying(true);
+    try {
+      await bulkUpsert({
+        weekIds: otherUnsubmitted.map((s) => s.weekId as Id<"weeks">),
+        playerId,
+        playing,
+        wantsWith: playing && wantsWithIds ? wantsWithIds : [],
+        avoid: [],
+        timeSlot: playing ? timeSlot : undefined,
+        notes: playing ? notes : undefined,
+      });
+      setCopied(true);
+    } catch (e) {
+      console.error("Copy to all failed:", e);
+    } finally {
+      setCopying(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-green-800 flex items-center justify-center px-6 py-12">
       <div className="max-w-md w-full text-center animate-fade-in">
@@ -37,15 +92,18 @@ export function ConfirmationScreen({
           {isUpdate ? "Submission Updated!" : "You're All Set!"}
         </h1>
         <p className="text-cream/60 text-lg mb-10">
-          Thanks, {playerName}. Your preferences have been {isUpdate ? "updated" : "submitted"}.
+          Thanks, {playerName}. Your preferences have been{" "}
+          {isUpdate ? "updated" : "submitted"}.
         </p>
 
-        <div className="bg-green-700/50 rounded-xl p-6 text-left space-y-4 mb-10">
+        <div className="bg-green-700/50 rounded-xl p-6 text-left space-y-4 mb-8">
           <div className="flex items-center gap-3">
             {playing ? (
               <div className="flex items-center gap-2">
                 <CheckCircle className="w-5 h-5 text-brass" />
-                <span className="text-cream font-medium">Playing this week</span>
+                <span className="text-cream font-medium">
+                  Playing this week
+                </span>
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -90,6 +148,84 @@ export function ConfirmationScreen({
             </>
           )}
         </div>
+
+        {/* Other open weeks section */}
+        {playerId && otherUnsubmitted.length > 0 && !copied && (
+          <div className="mb-8 animate-fade-in-delay">
+            <div className="bg-green-700/30 border border-brass/15 rounded-xl p-5 text-left">
+              <div className="flex items-center gap-2 mb-3">
+                <Timer className="w-4 h-4 text-amber-400" />
+                <span className="text-cream font-heading text-sm">
+                  {otherUnsubmitted.length} more open week
+                  {otherUnsubmitted.length !== 1 ? "s" : ""}:
+                </span>
+              </div>
+
+              <div className="space-y-2 mb-4">
+                {otherUnsubmitted.map((week) => {
+                  const d = new Date(week.playDate);
+                  return (
+                    <div
+                      key={week.weekId}
+                      className="flex items-center gap-2 text-cream/60 text-sm"
+                    >
+                      <Calendar className="w-3.5 h-3.5 text-brass/60" />
+                      <span>
+                        {d.toLocaleDateString("en-US", {
+                          weekday: "short",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                      {week.format && (
+                        <span className="text-cream/30 text-xs">
+                          · {week.format}
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={handleCopyToAll}
+                disabled={copying}
+                className="w-full min-h-[48px] bg-brass text-green-900 hover:bg-brass-light font-semibold rounded-lg transition-all flex items-center justify-center gap-2 active:scale-[0.98]"
+              >
+                {copying ? (
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                ) : (
+                  <>
+                    <Copy className="w-4 h-4" />
+                    Copy to All Open Weeks
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Copied success */}
+        {copied && (
+          <div className="mb-8 p-4 rounded-xl bg-green-600/30 border border-green-500/30 animate-fade-in">
+            <CheckCircle className="w-6 h-6 text-green-400 mx-auto mb-2" />
+            <p className="text-cream font-medium text-sm">
+              Copied to {otherUnsubmitted.length} week
+              {otherUnsubmitted.length !== 1 ? "s" : ""}!
+            </p>
+          </div>
+        )}
+
+        {/* Back to Dashboard */}
+        {playerId && (
+          <button
+            onClick={() => router.push("/play")}
+            className="inline-flex items-center gap-2 text-brass/70 hover:text-brass text-sm transition-colors mb-6"
+          >
+            <LayoutDashboard className="w-4 h-4" />
+            Back to Dashboard
+          </button>
+        )}
 
         <div className="w-16 h-px bg-brass/30 mx-auto mb-8" />
 

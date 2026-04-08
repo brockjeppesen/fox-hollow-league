@@ -6,10 +6,10 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { PlayerCombobox } from "@/components/PlayerCombobox";
 import { ConfirmationScreen } from "@/components/ConfirmationScreen";
-import { Textarea } from "@/components/ui/textarea";
+
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, Send, AlertTriangle } from "lucide-react";
+import { Loader2, Send, ArrowRight } from "lucide-react";
 
 const SLOTS = [
   { value: "early", label: "Early", desc: "3:00 – 3:30" },
@@ -45,6 +45,7 @@ export function RequestForm({
 }: RequestFormProps) {
   const players = useQuery(api.players.list) ?? [];
   const slotCapacityInfo = useQuery(api.requests.slotCapacityInfo, { weekId });
+  const lastSubmission = useQuery(api.requests.getLastSubmission, { playerId });
   const upsertRequest = useMutation(api.requests.upsert);
   const upsertPreferences = useMutation(api.preferences.upsert);
 
@@ -62,6 +63,7 @@ export function RequestForm({
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [wasWaitlisted, setWasWaitlisted] = useState(false);
+  const [usedLastWeek, setUsedLastWeek] = useState(false);
 
   const otherPlayers = players.filter((p) => p._id !== playerId);
 
@@ -70,6 +72,23 @@ export function RequestForm({
     month: "long",
     day: "numeric",
   });
+
+  // "Same as last week" — only show when they haven't already submitted for this week
+  // and there's a previous submission and they haven't already tapped it
+  const showLastWeek =
+    !existingRequest &&
+    !usedLastWeek &&
+    lastSubmission &&
+    playing === null;
+
+  const handleUseLastWeek = () => {
+    if (!lastSubmission) return;
+    setPlaying(lastSubmission.playing);
+    setWantsWith(lastSubmission.wantsWith);
+    setTimeSlot(lastSubmission.timeSlot ?? "no_preference");
+    setNotes(lastSubmission.notes ?? "");
+    setUsedLastWeek(true);
+  };
 
   const handleSubmit = async () => {
     if (playing === null) return;
@@ -117,9 +136,12 @@ export function RequestForm({
         playerName={playerName}
         playing={playing ?? false}
         wantsWithNames={wantsWithNames}
+        wantsWithIds={playing ? wantsWith : []}
         timeSlot={timeSlot || undefined}
         notes={notes || undefined}
         isUpdate={!!existingRequest}
+        playerId={playerId}
+        weekId={weekId}
       />
     );
   }
@@ -142,6 +164,28 @@ export function RequestForm({
             }
           </p>
         </div>
+
+        {/* Same as last week chip */}
+        {showLastWeek && (
+          <div className="mb-6 animate-fade-in">
+            <button
+              onClick={handleUseLastWeek}
+              className="w-full px-4 py-3 rounded-xl bg-brass/10 border border-brass/25 hover:bg-brass/20 transition-all text-left flex items-center gap-3"
+            >
+              <ArrowRight className="w-5 h-5 text-brass shrink-0" />
+              <div>
+                <span className="text-cream font-medium text-sm">Same as last week</span>
+                <span className="text-cream/40 text-xs block mt-0.5">
+                  {lastSubmission.playing ? "Playing" : "Not playing"}
+                  {lastSubmission.partnerNames.length > 0 &&
+                    ` · w/ ${lastSubmission.partnerNames.slice(0, 2).join(", ")}`}
+                  {lastSubmission.timeSlot && lastSubmission.timeSlot !== "no_preference" &&
+                    ` · ${lastSubmission.timeSlot}`}
+                </span>
+              </div>
+            </button>
+          </div>
+        )}
 
         <div className="space-y-6 animate-fade-in-delay">
           {/* Playing This Week? */}
@@ -245,26 +289,7 @@ export function RequestForm({
                 </div>
               </div>
 
-              {/* Notes */}
-              <div className="space-y-2">
-                <Label className="text-cream text-base font-heading">
-                  Notes
-                </Label>
-                <Textarea
-                  value={notes}
-                  onChange={(e) => {
-                    if (e.target.value.length <= 200) {
-                      setNotes(e.target.value);
-                    }
-                  }}
-                  placeholder="Cart needed, walking, riding with someone, etc."
-                  className="min-h-[80px] bg-white text-green-900 border-cream-dark placeholder:text-green-900/40"
-                  rows={3}
-                />
-                <p className="text-cream/40 text-xs text-right">
-                  {notes.length}/200
-                </p>
-              </div>
+
             </div>
           )}
 

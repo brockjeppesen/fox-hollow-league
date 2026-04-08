@@ -3,9 +3,17 @@
 import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { TeeSheetView } from "@/components/manager/TeeSheetView";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Loader2,
   Grid3X3,
@@ -16,10 +24,40 @@ import {
   Copy,
   Printer,
   Check,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 export default function TeeSheetPage() {
-  const currentWeek = useQuery(api.weeks.getCurrent);
+  const [selectedWeekId, setSelectedWeekId] = useState<Id<"weeks"> | null>(null);
+  const [generating, setGenerating] = useState(false);
+  const [publishing, setPublishing] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  const allWeeks = useQuery(api.weeks.listAll);
+  const autoWeek = useQuery(api.weeks.getCurrent);
+
+  // Sort weeks by date for the selector
+  const sortedWeeks = allWeeks
+    ? [...allWeeks].sort((a, b) => a.playDate - b.playDate)
+    : [];
+
+  // Use selected week, or fall back to auto-detected current week
+  const currentWeek = selectedWeekId
+    ? sortedWeeks.find((w) => w._id === selectedWeekId) ?? autoWeek
+    : autoWeek;
+
+  const currentIndex = currentWeek
+    ? sortedWeeks.findIndex((w) => w._id === currentWeek._id)
+    : -1;
+
+  const goToPrev = () => {
+    if (currentIndex > 0) setSelectedWeekId(sortedWeeks[currentIndex - 1]._id);
+  };
+  const goToNext = () => {
+    if (currentIndex < sortedWeeks.length - 1) setSelectedWeekId(sortedWeeks[currentIndex + 1]._id);
+  };
+
   const teeSheet = useQuery(
     api.teeSheet.getByWeek,
     currentWeek ? { weekId: currentWeek._id } : "skip"
@@ -33,9 +71,20 @@ export default function TeeSheetPage() {
   const generateTeeSheet = useMutation(api.teeSheet.generate);
   const publishTeeSheet = useMutation(api.teeSheet.publish);
 
-  const [generating, setGenerating] = useState(false);
-  const [publishing, setPublishing] = useState(false);
-  const [copied, setCopied] = useState(false);
+  // Format helpers
+  const formatWeekDate = (playDate: number) =>
+    new Date(playDate).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+
+  const formatWeekDateLong = (playDate: number) =>
+    new Date(playDate).toLocaleDateString("en-US", {
+      weekday: "long",
+      month: "long",
+      day: "numeric",
+    });
 
   // Loading
   if (currentWeek === undefined || teeSheet === undefined) {
@@ -61,10 +110,8 @@ export default function TeeSheetPage() {
     );
   }
 
-  const playDateStr = new Date(currentWeek.playDate).toLocaleDateString(
-    "en-US",
-    { weekday: "long", month: "long", day: "numeric" }
-  );
+  const playDateStr = formatWeekDateLong(currentWeek.playDate);
+  const weekDateStr = formatWeekDate(currentWeek.playDate);
 
   // Build player map
   const playerMap = new Map<
@@ -103,12 +150,7 @@ export default function TeeSheetPage() {
   const handleCopy = () => {
     if (!teeSheet || !currentWeek) return;
 
-    const dateStr = new Date(currentWeek.playDate).toLocaleDateString("en-US", {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-    });
-
+    const dateStr = formatWeekDate(currentWeek.playDate);
     const formatStr = currentWeek.format ? `${currentWeek.format}\n\n` : "";
 
     const lines = teeSheet.groups.map((group: any) => {
@@ -138,12 +180,61 @@ export default function TeeSheetPage() {
   return (
     <div className="p-6 md:p-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
         <div>
           <h1 className="font-heading text-2xl md:text-3xl text-green-900">
             Tee Sheet
           </h1>
-          <p className="text-muted-foreground mt-1">{playDateStr}</p>
+
+          {/* Week Selector */}
+          <div className="flex items-center gap-2 mt-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={goToPrev}
+              disabled={currentIndex <= 0}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Select
+              value={currentWeek?._id}
+              onValueChange={(val) => setSelectedWeekId(val as Id<"weeks">)}
+            >
+              <SelectTrigger className="w-full max-w-[320px] h-9 text-sm">
+                {currentWeek ? (
+                  <span className="truncate">
+                    {weekDateStr}
+                    {" — "}
+                    {(currentWeek.format || "TBD").substring(0, 25)}
+                    {currentWeek.status === "open" ? " 🟢" : currentWeek.status === "closed" ? " 🔴" : ""}
+                  </span>
+                ) : (
+                  <SelectValue placeholder="Select week..." />
+                )}
+              </SelectTrigger>
+              <SelectContent>
+                {sortedWeeks.map((w) => {
+                  const date = formatWeekDate(w.playDate);
+                  const statusBadge = w.status === "open" ? " 🟢" : w.status === "closed" ? " 🔴" : "";
+                  return (
+                    <SelectItem key={w._id} value={w._id}>
+                      {date} — {(w.format || "TBD").substring(0, 30)}{statusBadge}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={goToNext}
+              disabled={currentIndex >= sortedWeeks.length - 1}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
         <div className="flex items-center gap-2 sm:gap-3 flex-wrap no-print">
           {teeSheet && (

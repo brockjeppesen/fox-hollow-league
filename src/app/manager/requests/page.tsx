@@ -3,8 +3,16 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Loader2,
   ClipboardList,
@@ -12,9 +20,13 @@ import {
   ChevronUp,
   ChevronDown,
   ChevronsUpDown,
+  ChevronLeft,
+  ChevronRight,
   MessageSquare,
   Users,
   Ban,
+  Clock,
+  CalendarPlus,
 } from "lucide-react";
 
 type FilterTab = "all" | "playing" | "not-playing";
@@ -47,8 +59,32 @@ export default function RequestsPage() {
   const [search, setSearch] = useState("");
   const [sortKey, setSortKey] = useState<SortKey>("name");
   const [sortDir, setSortDir] = useState<SortDir>("asc");
+  const [selectedWeekId, setSelectedWeekId] = useState<Id<"weeks"> | null>(null);
 
-  const currentWeek = useQuery(api.weeks.getCurrent);
+  const allWeeks = useQuery(api.weeks.listAll);
+  const autoWeek = useQuery(api.weeks.getCurrent);
+
+  // Sort weeks by date for the selector
+  const sortedWeeks = allWeeks
+    ? [...allWeeks].sort((a, b) => a.playDate - b.playDate)
+    : [];
+
+  // Use selected week, or fall back to auto-detected current week
+  const currentWeek = selectedWeekId
+    ? sortedWeeks.find((w) => w._id === selectedWeekId) ?? autoWeek
+    : autoWeek;
+
+  const currentIndex = currentWeek
+    ? sortedWeeks.findIndex((w) => w._id === currentWeek._id)
+    : -1;
+
+  const goToPrev = () => {
+    if (currentIndex > 0) setSelectedWeekId(sortedWeeks[currentIndex - 1]._id);
+  };
+  const goToNext = () => {
+    if (currentIndex < sortedWeeks.length - 1) setSelectedWeekId(sortedWeeks[currentIndex + 1]._id);
+  };
+
   const requests = useQuery(
     api.requests.getByWeek,
     currentWeek ? { weekId: currentWeek._id } : "skip"
@@ -119,7 +155,31 @@ export default function RequestsPage() {
   const playingCount = requests?.filter((r) => r.playing).length ?? 0;
   const notPlayingCount = requests?.filter((r) => !r.playing).length ?? 0;
 
-  if (currentWeek === undefined || requests === undefined) {
+  // Format helpers
+  const formatWeekDate = (playDate: number) =>
+    new Date(playDate).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+
+  const formatDeadline = (deadline: number) => {
+    const d = new Date(deadline);
+    const now = Date.now();
+    const isPast = deadline < now;
+    return {
+      text: d.toLocaleDateString("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+      }),
+      isPast,
+    };
+  };
+
+  if (currentWeek === undefined) {
     return (
       <div className="p-6 md:p-10">
         <div className="flex items-center justify-center py-20">
@@ -142,6 +202,9 @@ export default function RequestsPage() {
     );
   }
 
+  const weekDateStr = formatWeekDate(currentWeek.playDate);
+  const deadlineInfo = formatDeadline(currentWeek.deadline);
+
   const tabs: { key: FilterTab; label: string; count: number }[] = [
     { key: "all", label: "All", count: requests?.length ?? 0 },
     { key: "playing", label: "Playing", count: playingCount },
@@ -155,9 +218,75 @@ export default function RequestsPage() {
         <h1 className="font-heading text-2xl md:text-3xl text-green-900">
           Requests
         </h1>
-        <p className="text-muted-foreground mt-1">
-          Player submissions for the current week
-        </p>
+
+        {/* Week Selector */}
+        <div className="flex items-center gap-2 mt-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToPrev}
+            disabled={currentIndex <= 0}
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </Button>
+          <Select
+            value={currentWeek?._id}
+            onValueChange={(val) => setSelectedWeekId(val as Id<"weeks">)}
+          >
+            <SelectTrigger className="w-full max-w-[320px] h-9 text-sm">
+              {currentWeek ? (
+                <span className="truncate">
+                  {weekDateStr}
+                  {" — "}
+                  {(currentWeek.format || "TBD").substring(0, 25)}
+                  {currentWeek.status === "open" ? " 🟢" : currentWeek.status === "closed" ? " 🔴" : ""}
+                </span>
+              ) : (
+                <SelectValue placeholder="Select week..." />
+              )}
+            </SelectTrigger>
+            <SelectContent>
+              {sortedWeeks.map((w) => {
+                const date = formatWeekDate(w.playDate);
+                const statusBadge = w.status === "open" ? " 🟢" : w.status === "closed" ? " 🔴" : "";
+                return (
+                  <SelectItem key={w._id} value={w._id}>
+                    {date} — {(w.format || "TBD").substring(0, 30)}{statusBadge}
+                  </SelectItem>
+                );
+              })}
+            </SelectContent>
+          </Select>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={goToNext}
+            disabled={currentIndex >= sortedWeeks.length - 1}
+          >
+            <ChevronRight className="w-4 h-4" />
+          </Button>
+        </div>
+
+        {/* Deadline info */}
+        <div className="flex items-center gap-1.5 mt-2 text-sm text-muted-foreground">
+          <Clock className="w-3.5 h-3.5" />
+          <span>
+            Deadline: {deadlineInfo.text}
+            {deadlineInfo.isPast && (
+              <span className="ml-1.5 text-red-600 font-medium">· Past</span>
+            )}
+          </span>
+        </div>
+      </div>
+
+      {/* Requests count header */}
+      <div className="mb-5 animate-fade-in">
+        <h2 className="text-lg font-heading text-green-900">
+          Requests for {weekDateStr}
+          {currentWeek.format && ` — ${currentWeek.format}`}
+        </h2>
       </div>
 
       {/* Summary Bar */}
@@ -212,18 +341,29 @@ export default function RequestsPage() {
       </div>
 
       {/* Content */}
-      {processedRequests.length === 0 ? (
+      {requests !== undefined && processedRequests.length === 0 ? (
         <div className="text-center py-12 animate-scale-in">
           <div className="w-16 h-16 rounded-full bg-cream-dark flex items-center justify-center mx-auto mb-4">
             <ClipboardList className="w-8 h-8 text-muted-foreground" />
           </div>
-          <p className="text-muted-foreground">
+          <h3 className="font-heading text-lg text-green-900 mb-1">
             {search
-              ? "No requests match your search."
-              : activeTab === "all"
-                ? "No submissions yet for this week."
-                : `No ${activeTab === "playing" ? "playing" : "not-playing"} submissions.`}
+              ? "No requests match your search"
+              : activeTab !== "all"
+                ? `No ${activeTab === "playing" ? "playing" : "not-playing"} submissions`
+                : "No submissions yet"}
+          </h3>
+          <p className="text-muted-foreground text-sm">
+            {search
+              ? "Try a different search term."
+              : activeTab !== "all"
+                ? `No players have submitted as ${activeTab === "playing" ? "playing" : "not playing"} for this week.`
+                : `No one has submitted a request for ${weekDateStr} yet. Share the link with players!`}
           </p>
+        </div>
+      ) : requests === undefined ? (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="w-6 h-6 animate-spin text-green-800" />
         </div>
       ) : (
         <>

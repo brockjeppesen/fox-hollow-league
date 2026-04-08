@@ -37,6 +37,7 @@ export const create = mutation({
     args: {
         playDate: v.number(),
         deadline: v.number(),
+        format: v.optional(v.string()),
         golfGeniusEventId: v.optional(v.string()),
         status: v.string(),
     },

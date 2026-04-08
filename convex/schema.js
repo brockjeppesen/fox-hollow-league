@@ -20,6 +20,7 @@ export default defineSchema({
     weeks: defineTable({
         playDate: v.number(),
         deadline: v.number(),
+        format: v.optional(v.string()),
         golfGeniusEventId: v.optional(v.string()),
         status: v.string(),
     }).index("by_status", ["status"]),

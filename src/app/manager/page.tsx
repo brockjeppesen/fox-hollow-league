@@ -29,6 +29,8 @@ import {
   Search,
   ArrowUpDown,
   Filter,
+  AlertTriangle,
+  ArrowUp,
 } from "lucide-react";
 import Link from "next/link";
 
@@ -71,6 +73,11 @@ export default function ManagerOverviewPage() {
     api.teeSheet.getByWeek,
     currentWeek ? { weekId: currentWeek._id } : "skip"
   );
+  const waitlist = useQuery(
+    api.requests.getWaitlist,
+    currentWeek ? { weekId: currentWeek._id } : "skip"
+  );
+  const promoteFromWaitlist = useMutation(api.requests.promoteFromWaitlist);
   const updateStatus = useMutation(api.weeks.updateStatus);
 
   // Processed player list with search, filter, and sort
@@ -358,6 +365,46 @@ export default function ManagerOverviewPage() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Waitlist */}
+          {waitlist && waitlist.length > 0 && (
+            <Card className="border-0 ring-1 ring-orange-300/30 bg-orange-50/50">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-orange-500" />
+                  Waitlist ({waitlist.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  {waitlist.map((req) => (
+                    <div
+                      key={req._id}
+                      className="flex items-center justify-between px-3 py-2 bg-white rounded-lg"
+                    >
+                      <div>
+                        <span className="font-medium text-sm text-green-900">
+                          {req.playerName}
+                        </span>
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {req.timeSlot ?? "No pref"}
+                        </span>
+                      </div>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-7 text-xs border-green-800/20 text-green-800 hover:bg-green-800 hover:text-cream"
+                        onClick={() => promoteFromWaitlist({ requestId: req._id })}
+                      >
+                        <ArrowUp className="w-3 h-3 mr-1" />
+                        Promote
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* ═══════════════════════════════════════

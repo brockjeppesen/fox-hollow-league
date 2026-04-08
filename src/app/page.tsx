@@ -154,11 +154,18 @@ export default function HomePage() {
                 <ArrowRight className="w-5 h-5" />
               </Link>
               <Link
+                href="/standings"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-cream/20 text-cream rounded-xl hover:bg-cream/10 active:scale-[0.98] transition-all text-center"
+              >
+                <Trophy className="w-4 h-4 text-cream/50" />
+                Standings
+              </Link>
+              <Link
                 href="/manager"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-cream/20 text-cream rounded-xl hover:bg-cream/10 active:scale-[0.98] transition-all text-center"
               >
                 <Shield className="w-4 h-4 text-cream/50" />
-                Manager Dashboard
+                Manager
               </Link>
             </div>
 

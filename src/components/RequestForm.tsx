@@ -9,7 +9,7 @@ import { ConfirmationScreen } from "@/components/ConfirmationScreen";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { Loader2, Send } from "lucide-react";
+import { Loader2, Send, AlertTriangle } from "lucide-react";
 
 const SLOTS = [
   { value: "early", label: "Early", desc: "3:00 – 3:30" },
@@ -44,6 +44,7 @@ export function RequestForm({
   preferences,
 }: RequestFormProps) {
   const players = useQuery(api.players.list) ?? [];
+  const slotCapacityInfo = useQuery(api.requests.slotCapacityInfo, { weekId });
   const upsertRequest = useMutation(api.requests.upsert);
   const upsertPreferences = useMutation(api.preferences.upsert);
 
@@ -60,6 +61,7 @@ export function RequestForm({
   const [notes, setNotes] = useState<string>(existingRequest?.notes ?? "");
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [wasWaitlisted, setWasWaitlisted] = useState(false);
 
   const otherPlayers = players.filter((p) => p._id !== playerId);
 
@@ -74,7 +76,7 @@ export function RequestForm({
 
     setSubmitting(true);
     try {
-      await upsertRequest({
+      const result = await upsertRequest({
         weekId,
         playerId,
         playing,
@@ -83,6 +85,10 @@ export function RequestForm({
         timeSlot: playing ? timeSlot || undefined : undefined,
         notes: playing ? notes || undefined : undefined,
       });
+
+      if (result && typeof result === "object" && "waitlisted" in result) {
+        setWasWaitlisted(!!result.waitlisted);
+      }
 
       // Save preferences for next time
       await upsertPreferences({
@@ -197,23 +203,45 @@ export function RequestForm({
                   Choose your preferred window
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  {SLOTS.map((slot) => (
-                    <button
-                      key={slot.value}
-                      type="button"
-                      onClick={() => setTimeSlot(slot.value)}
-                      className={`min-h-[64px] rounded-lg font-semibold transition-all flex flex-col items-center justify-center ${
-                        timeSlot === slot.value
-                          ? "bg-brass text-green-900 ring-2 ring-brass-light"
-                          : "bg-green-700 text-cream/70 hover:bg-green-700/80"
-                      }`}
-                    >
-                      <span className="text-base">{slot.label}</span>
-                      <span className={`text-xs mt-0.5 ${timeSlot === slot.value ? "text-green-900/60" : "text-cream/40"}`}>
-                        {slot.desc}
-                      </span>
-                    </button>
-                  ))}
+                  {SLOTS.map((slot) => {
+                    const slotKey = slot.value;
+                    const isCapacitySlot = slotKey === "early" || slotKey === "mid" || slotKey === "late";
+                    const hasCapacity = slotCapacityInfo && isCapacitySlot && slotCapacityInfo.remaining;
+                    const remaining = hasCapacity ? (slotCapacityInfo.remaining as Record<string, number>)[slotKey] : null;
+                    const isFull = remaining !== null && remaining <= 0;
+
+                    return (
+                      <button
+                        key={slot.value}
+                        type="button"
+                        onClick={() => setTimeSlot(slot.value)}
+                        className={`min-h-[64px] rounded-lg font-semibold transition-all flex flex-col items-center justify-center ${
+                          isFull && timeSlot === slot.value
+                            ? "bg-orange-500 text-white ring-2 ring-orange-300"
+                            : timeSlot === slot.value
+                              ? "bg-brass text-green-900 ring-2 ring-brass-light"
+                              : isFull
+                                ? "bg-green-700/60 text-cream/50"
+                                : "bg-green-700 text-cream/70 hover:bg-green-700/80"
+                        }`}
+                      >
+                        <span className="text-base">
+                          {isFull && timeSlot === slot.value ? "Waitlisted" : slot.label}
+                        </span>
+                        <span className={`text-xs mt-0.5 ${
+                          timeSlot === slot.value
+                            ? isFull ? "text-white/70" : "text-green-900/60"
+                            : "text-cream/40"
+                        }`}>
+                          {isFull
+                            ? "Full — Join Waitlist"
+                            : remaining !== null
+                              ? `${remaining} spot${remaining !== 1 ? "s" : ""} left`
+                              : slot.desc}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

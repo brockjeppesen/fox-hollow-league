@@ -83,50 +83,95 @@ export default function StandingsPage() {
             </p>
           </div>
         ) : (
-          <div className="space-y-2 animate-stagger">
-            {/* Table header */}
-            <div className="grid grid-cols-[50px_1fr_80px_80px_80px] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
-              <span>Rank</span>
-              <span>Player</span>
-              <span className="text-center">Rounds</span>
-              <span className="text-center">Points</span>
-              <span className="text-center">Avg</span>
+          <>
+            {/* ═══ Desktop Table ═══ */}
+            <div className="hidden sm:block space-y-2 animate-stagger">
+              {/* Table header */}
+              <div className="grid grid-cols-[50px_1fr_80px_80px_80px] gap-2 px-4 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                <span>Rank</span>
+                <span>Player</span>
+                <span className="text-center">Rounds</span>
+                <span className="text-center">Points</span>
+                <span className="text-center">Avg</span>
+              </div>
+
+              {filtered.map((entry) => (
+                <Link
+                  key={entry._id}
+                  href={`/player/${entry.playerId}`}
+                  className={`grid grid-cols-[50px_1fr_80px_80px_80px] gap-2 items-center px-4 py-3 rounded-xl transition-all hover:shadow-md cursor-pointer ${
+                    RANK_STYLES[entry.rank] ??
+                    "bg-white ring-1 ring-green-800/5 hover:ring-green-800/10"
+                  }`}
+                >
+                  <span className="text-lg font-heading font-bold text-green-900">
+                    {RANK_BADGES[entry.rank] ?? entry.rank}
+                  </span>
+                  <div>
+                    <span className="font-medium text-sm text-green-900">
+                      {entry.playerName}
+                    </span>
+                    {entry.playerHandicap !== undefined && (
+                      <span className="text-xs text-muted-foreground ml-1.5">
+                        ({entry.playerHandicap.toFixed(1)})
+                      </span>
+                    )}
+                  </div>
+                  <span className="text-center text-sm tabular-nums">
+                    {entry.roundsPlayed}
+                  </span>
+                  <span className="text-center text-sm font-semibold text-green-900 tabular-nums">
+                    {entry.totalPoints}
+                  </span>
+                  <span className="text-center text-sm text-muted-foreground tabular-nums">
+                    {entry.avgScore?.toFixed(1) ?? "—"}
+                  </span>
+                </Link>
+              ))}
             </div>
 
-            {filtered.map((entry) => (
-              <Link
-                key={entry._id}
-                href={`/player/${entry.playerId}`}
-                className={`grid grid-cols-[50px_1fr_80px_80px_80px] gap-2 items-center px-4 py-3 rounded-xl transition-all hover:shadow-md cursor-pointer ${
-                  RANK_STYLES[entry.rank] ??
-                  "bg-white ring-1 ring-green-800/5 hover:ring-green-800/10"
-                }`}
-              >
-                <span className="text-lg font-heading font-bold text-green-900">
-                  {RANK_BADGES[entry.rank] ?? entry.rank}
-                </span>
-                <div>
-                  <span className="font-medium text-sm text-green-900">
-                    {entry.playerName}
-                  </span>
-                  {entry.playerHandicap !== undefined && (
-                    <span className="text-xs text-muted-foreground ml-1.5">
-                      ({entry.playerHandicap.toFixed(1)})
-                    </span>
-                  )}
-                </div>
-                <span className="text-center text-sm tabular-nums">
-                  {entry.roundsPlayed}
-                </span>
-                <span className="text-center text-sm font-semibold text-green-900 tabular-nums">
-                  {entry.totalPoints}
-                </span>
-                <span className="text-center text-sm text-muted-foreground tabular-nums">
-                  {entry.avgScore?.toFixed(1) ?? "—"}
-                </span>
-              </Link>
-            ))}
-          </div>
+            {/* ═══ Mobile Cards ═══ */}
+            <div className="sm:hidden space-y-2 animate-stagger-slow">
+              {filtered.map((entry) => (
+                <Link
+                  key={entry._id}
+                  href={`/player/${entry.playerId}`}
+                  className={`block rounded-xl px-4 py-3 transition-all hover:shadow-md cursor-pointer ${
+                    RANK_STYLES[entry.rank] ??
+                    "bg-white ring-1 ring-green-800/5 hover:ring-green-800/10"
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <span className="text-lg font-heading font-bold text-green-900 shrink-0">
+                        {RANK_BADGES[entry.rank] ?? entry.rank}
+                      </span>
+                      <div className="min-w-0">
+                        <span className="font-medium text-sm text-green-900 truncate block">
+                          {entry.playerName}
+                        </span>
+                        {entry.playerHandicap !== undefined && (
+                          <span className="text-xs text-muted-foreground">
+                            HCP {entry.playerHandicap.toFixed(1)}
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="text-right shrink-0 ml-3">
+                      <span className="text-lg font-heading font-bold text-green-900 tabular-nums">
+                        {entry.totalPoints}
+                      </span>
+                      <span className="text-xs text-muted-foreground ml-1">pts</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4 mt-1.5 text-xs text-muted-foreground">
+                    <span>{entry.roundsPlayed} rounds</span>
+                    <span>Avg {entry.avgScore?.toFixed(1) ?? "—"}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </div>

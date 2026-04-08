@@ -107,7 +107,7 @@ export default function LinksPage() {
             Unique submission links for each player
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
           {tokens && tokens.length > 0 && (
             <Button
               variant="outline"
@@ -122,7 +122,7 @@ export default function LinksPage() {
               ) : (
                 <>
                   <ClipboardCopy className="w-4 h-4 mr-1.5" />
-                  Copy All Links
+                  Copy All
                 </>
               )}
             </Button>
@@ -137,7 +137,7 @@ export default function LinksPage() {
             ) : (
               <Wand2 className="w-4 h-4 mr-1.5" />
             )}
-            Generate All Links
+            Generate All
           </Button>
         </div>
       </div>
@@ -165,28 +165,91 @@ export default function LinksPage() {
           </Button>
         </div>
       ) : (
-        <div className="bg-white rounded-xl ring-1 ring-green-800/10 overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow className="bg-cream/50">
-                <TableHead>Player</TableHead>
-                <TableHead className="hidden sm:table-cell">Link</TableHead>
-                <TableHead>Submitted</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {tokens.map((tokenDoc) => (
-                <TableRow key={tokenDoc._id}>
-                  <TableCell className="font-medium">
-                    {tokenDoc.playerName}
-                  </TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <code className="text-xs bg-cream-dark/50 px-2 py-1 rounded text-muted-foreground max-w-[300px] truncate block">
-                      /request/{tokenDoc.token.slice(0, 12)}...
+        <>
+          {/* ═══ Desktop Table ═══ */}
+          <div className="hidden md:block bg-white rounded-xl ring-1 ring-green-800/10 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="bg-cream/50">
+                  <TableHead>Player</TableHead>
+                  <TableHead>Link</TableHead>
+                  <TableHead>Submitted</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tokens.map((tokenDoc) => (
+                  <TableRow key={tokenDoc._id}>
+                    <TableCell className="font-medium">
+                      {tokenDoc.playerName}
+                    </TableCell>
+                    <TableCell>
+                      <code className="text-xs bg-cream-dark/50 px-2 py-1 rounded text-muted-foreground max-w-[300px] truncate block">
+                        /request/{tokenDoc.token.slice(0, 12)}...
+                      </code>
+                    </TableCell>
+                    <TableCell>
+                      {tokenDoc.submitted ? (
+                        <Badge
+                          variant="default"
+                          className="bg-green-800 text-cream"
+                        >
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Yes
+                        </Badge>
+                      ) : (
+                        <Badge
+                          variant="secondary"
+                          className="bg-cream-dark text-muted-foreground"
+                        >
+                          <Circle className="w-3 h-3 mr-1" />
+                          Pending
+                        </Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleCopyLink(tokenDoc.token)}
+                        className="min-h-[44px]"
+                      >
+                        {copiedToken === tokenDoc.token ? (
+                          <>
+                            <Check className="w-3.5 h-3.5 mr-1 text-green-700" />
+                            Copied
+                          </>
+                        ) : (
+                          <>
+                            <Copy className="w-3.5 h-3.5 mr-1" />
+                            Copy
+                          </>
+                        )}
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* ═══ Mobile Cards ═══ */}
+          <div className="md:hidden space-y-2 animate-stagger-slow">
+            {tokens.map((tokenDoc) => (
+              <div
+                key={tokenDoc._id}
+                className="bg-white rounded-xl ring-1 ring-green-800/10 p-4"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-medium text-sm text-green-900 truncate">
+                      {tokenDoc.playerName}
+                    </h3>
+                    <code className="text-[10px] text-muted-foreground/60 block truncate">
+                      /request/{tokenDoc.token.slice(0, 16)}...
                     </code>
-                  </TableCell>
-                  <TableCell>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0 ml-3">
                     {tokenDoc.submitted ? (
                       <Badge
                         variant="default"
@@ -204,31 +267,24 @@ export default function LinksPage() {
                         Pending
                       </Badge>
                     )}
-                  </TableCell>
-                  <TableCell className="text-right">
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleCopyLink(tokenDoc.token)}
+                      className="min-h-[44px] min-w-[44px]"
                     >
                       {copiedToken === tokenDoc.token ? (
-                        <>
-                          <Check className="w-3.5 h-3.5 mr-1 text-green-700" />
-                          Copied
-                        </>
+                        <Check className="w-4 h-4 text-green-700" />
                       ) : (
-                        <>
-                          <Copy className="w-3.5 h-3.5 mr-1" />
-                          Copy
-                        </>
+                        <Copy className="w-4 h-4" />
                       )}
                     </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </div>
   );

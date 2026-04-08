@@ -223,57 +223,120 @@ export default function ScoresPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {/* Table header */}
-            <div className="grid grid-cols-[1fr_80px_80px_80px] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-cream-dark/80 mb-1">
-              <span>Player</span>
-              <span className="text-center">Gross</span>
-              <span className="text-center">Net</span>
-              <span className="text-center">Points</span>
+            {/* ═══ Desktop Table ═══ */}
+            <div className="hidden sm:block">
+              <div className="grid grid-cols-[1fr_80px_80px_80px] gap-2 px-3 py-2 text-xs font-medium text-muted-foreground uppercase tracking-wider border-b border-cream-dark/80 mb-1">
+                <span>Player</span>
+                <span className="text-center">Gross</span>
+                <span className="text-center">Net</span>
+                <span className="text-center">Points</span>
+              </div>
+
+              <div className="space-y-1 animate-stagger">
+                {scoreRows.map((row, idx) => (
+                  <div
+                    key={row.playerId}
+                    className="grid grid-cols-[1fr_80px_80px_80px] gap-2 items-center px-3 py-2 rounded-xl hover:bg-green-800/[0.02] transition-colors"
+                  >
+                    <div>
+                      <span className="font-medium text-sm text-green-900">
+                        {row.playerName}
+                      </span>
+                      {row.playerHandicap !== undefined && (
+                        <span className="text-xs text-muted-foreground ml-1.5">
+                          ({row.playerHandicap.toFixed(1)})
+                        </span>
+                      )}
+                    </div>
+                    <Input
+                      type="number"
+                      value={row.grossScore}
+                      onChange={(e) =>
+                        updateRow(idx, "grossScore", e.target.value)
+                      }
+                      className="h-8 text-center text-sm"
+                      placeholder="—"
+                    />
+                    <Input
+                      type="number"
+                      value={row.netScore}
+                      onChange={(e) =>
+                        updateRow(idx, "netScore", e.target.value)
+                      }
+                      className="h-8 text-center text-sm"
+                      placeholder="—"
+                    />
+                    <Input
+                      type="number"
+                      value={row.points}
+                      onChange={(e) =>
+                        updateRow(idx, "points", e.target.value)
+                      }
+                      className="h-8 text-center text-sm"
+                      placeholder="—"
+                    />
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <div className="space-y-1 animate-stagger">
+            {/* ═══ Mobile Cards ═══ */}
+            <div className="sm:hidden space-y-3 animate-stagger-slow">
               {scoreRows.map((row, idx) => (
                 <div
                   key={row.playerId}
-                  className="grid grid-cols-[1fr_80px_80px_80px] gap-2 items-center px-3 py-2 rounded-xl hover:bg-green-800/[0.02] transition-colors"
+                  className="rounded-xl bg-white/60 ring-1 ring-green-800/5 p-3"
                 >
-                  <div>
-                    <span className="font-medium text-sm text-green-900">
-                      {row.playerName}
-                    </span>
-                    {row.playerHandicap !== undefined && (
-                      <span className="text-xs text-muted-foreground ml-1.5">
-                        ({row.playerHandicap.toFixed(1)})
+                  <div className="flex items-center justify-between mb-2">
+                    <div>
+                      <span className="font-medium text-sm text-green-900">
+                        {row.playerName}
                       </span>
-                    )}
+                      {row.playerHandicap !== undefined && (
+                        <span className="text-xs text-muted-foreground ml-1.5">
+                          ({row.playerHandicap.toFixed(1)})
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <Input
-                    type="number"
-                    value={row.grossScore}
-                    onChange={(e) =>
-                      updateRow(idx, "grossScore", e.target.value)
-                    }
-                    className="h-8 text-center text-sm"
-                    placeholder="—"
-                  />
-                  <Input
-                    type="number"
-                    value={row.netScore}
-                    onChange={(e) =>
-                      updateRow(idx, "netScore", e.target.value)
-                    }
-                    className="h-8 text-center text-sm"
-                    placeholder="—"
-                  />
-                  <Input
-                    type="number"
-                    value={row.points}
-                    onChange={(e) =>
-                      updateRow(idx, "points", e.target.value)
-                    }
-                    className="h-8 text-center text-sm"
-                    placeholder="—"
-                  />
+                  <div className="grid grid-cols-3 gap-2">
+                    <div>
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Gross</label>
+                      <Input
+                        type="number"
+                        value={row.grossScore}
+                        onChange={(e) =>
+                          updateRow(idx, "grossScore", e.target.value)
+                        }
+                        className="h-10 text-center text-sm"
+                        placeholder="—"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Net</label>
+                      <Input
+                        type="number"
+                        value={row.netScore}
+                        onChange={(e) =>
+                          updateRow(idx, "netScore", e.target.value)
+                        }
+                        className="h-10 text-center text-sm"
+                        placeholder="—"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-[10px] text-muted-foreground uppercase tracking-wider block mb-1">Points</label>
+                      <Input
+                        type="number"
+                        value={row.points}
+                        onChange={(e) =>
+                          updateRow(idx, "points", e.target.value)
+                        }
+                        className="h-10 text-center text-sm"
+                        placeholder="—"
+                      />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

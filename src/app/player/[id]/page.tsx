@@ -157,19 +157,19 @@ export default function PlayerProfilePage() {
                   return (
                     <div
                       key={idx}
-                      className="flex items-center justify-between px-4 py-3 bg-white/60 rounded-xl"
+                      className="flex items-center justify-between px-4 py-3 bg-white/60 rounded-xl gap-2"
                     >
-                      <div>
-                        <p className="font-medium text-sm text-green-900">
+                      <div className="min-w-0 flex-1">
+                        <p className="font-medium text-sm text-green-900 truncate">
                           {dateStr}
                         </p>
                         {round.format && (
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-xs text-muted-foreground truncate">
                             {round.format}
                           </p>
                         )}
                       </div>
-                      <div className="flex items-center gap-4 text-sm">
+                      <div className="flex items-center gap-3 sm:gap-4 text-sm shrink-0">
                         {round.grossScore !== undefined && (
                           <div className="text-center">
                             <p className="text-xs text-muted-foreground">

@@ -175,20 +175,20 @@ export default function HistoryPage() {
                 className="border-0 ring-1 ring-green-800/10 overflow-hidden"
               >
                 <div
-                  className="flex items-center justify-between px-5 py-4 cursor-pointer hover:bg-green-800/[0.02] transition-colors"
+                  className="flex items-center justify-between px-4 sm:px-5 py-4 cursor-pointer hover:bg-green-800/[0.02] transition-colors gap-3"
                   onClick={() =>
                     setExpandedWeek(isExpanded ? null : week._id)
                   }
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1">
                     <div className="w-10 h-10 rounded-lg bg-green-800/10 flex items-center justify-center shrink-0">
                       <CalendarDays className="w-5 h-5 text-green-800" />
                     </div>
-                    <div>
-                      <p className="font-medium text-green-900">{dateStr}</p>
-                      <div className="flex items-center gap-3 mt-0.5">
+                    <div className="min-w-0">
+                      <p className="font-medium text-green-900 text-sm sm:text-base truncate">{dateStr}</p>
+                      <div className="flex items-center gap-2 sm:gap-3 mt-0.5 flex-wrap">
                         {week.format && (
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-xs text-muted-foreground truncate max-w-[140px] sm:max-w-none">
                             {week.format}
                           </span>
                         )}
@@ -196,7 +196,7 @@ export default function HistoryPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0">
                     <Badge
                       variant="secondary"
                       className={

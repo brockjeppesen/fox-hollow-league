@@ -42,11 +42,15 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-green-800 text-cream relative overflow-hidden">
-      {/* Background mesh */}
+      {/* Background — Fox Hollow sunset banner */}
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-[-10%] right-[-5%] w-[700px] h-[700px] rounded-full bg-brass/5 blur-[180px]" />
-        <div className="absolute bottom-[-15%] left-[-10%] w-[500px] h-[500px] rounded-full bg-green-600/10 blur-[150px]" />
-        <div className="absolute top-[40%] left-[50%] w-[300px] h-[300px] rounded-full bg-brass/3 blur-[120px]" />
+        <img
+          src="/images/home_banner.jpg"
+          alt=""
+          className="absolute inset-0 w-full h-full object-cover opacity-20"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-green-800/80 via-green-800/90 to-green-800" />
+        <div className="absolute inset-0 bg-gradient-to-r from-green-800/95 to-transparent" />
         {/* Subtle dot pattern */}
         <div
           className="absolute inset-0 opacity-[0.03]"
@@ -62,11 +66,13 @@ export default function HomePage() {
         <header className="px-6 py-6 md:px-12 md:py-8 animate-fade-in">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-brass flex items-center justify-center">
-                <span className="text-green-900 font-heading text-sm font-bold leading-none">FH</span>
-              </div>
+              <img
+                src="/images/logo.png"
+                alt="Fox Hollow Golf Club"
+                className="h-10 w-auto brightness-110"
+              />
               <span className="text-lg font-medium tracking-wide uppercase text-cream/80">
-                Fox Hollow League
+                Men&apos;s League
               </span>
             </div>
             <Link
@@ -90,7 +96,7 @@ export default function HomePage() {
             </div>
 
             {/* Heading */}
-            <h1 className="font-heading text-5xl md:text-7xl lg:text-[5.5rem] leading-[0.92] mb-4 animate-fade-in">
+            <h1 className="font-heading text-4xl sm:text-5xl md:text-7xl lg:text-[5.5rem] leading-[0.92] mb-4 animate-fade-in">
               Fox Hollow
               <br />
               <span className="text-brass">Men&apos;s League</span>
@@ -195,9 +201,11 @@ export default function HomePage() {
         <footer className="px-6 py-8 md:px-12 animate-fade-in-delay-2">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 text-cream/30 text-sm">
             <div className="flex items-center gap-3">
-              <div className="w-6 h-6 rounded-full bg-brass/20 flex items-center justify-center">
-                <span className="text-brass text-[8px] font-heading font-bold">FH</span>
-              </div>
+              <img
+                src="/images/logo.png"
+                alt="Fox Hollow"
+                className="h-6 w-auto opacity-50"
+              />
               <p>Fox Hollow Golf Club</p>
             </div>
             <p className="text-cream/20">American Fork, Utah · Est. 2026</p>

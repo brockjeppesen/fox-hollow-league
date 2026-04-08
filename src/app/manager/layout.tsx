@@ -43,15 +43,11 @@ export default function ManagerLayout({
       <aside className="hidden md:flex flex-col w-64 bg-green-800 text-cream min-h-screen">
         <div className="p-6 border-b border-green-700">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-brass flex items-center justify-center">
-              <svg
-                className="w-4 h-4 text-green-900"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-              </svg>
-            </div>
+            <img
+              src="/images/logo.png"
+              alt="Fox Hollow"
+              className="h-9 w-auto brightness-110"
+            />
             <div>
               <p className="font-heading text-sm leading-tight">Fox Hollow</p>
               <p className="text-cream/50 text-xs">League Manager</p>
@@ -101,15 +97,11 @@ export default function ManagerLayout({
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-green-800 border-b border-green-700">
         <div className="flex items-center justify-between px-4 h-14">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-full bg-brass flex items-center justify-center">
-              <svg
-                className="w-4 h-4 text-green-900"
-                fill="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" />
-              </svg>
-            </div>
+            <img
+              src="/images/logo.png"
+              alt="Fox Hollow"
+              className="h-8 w-auto brightness-110"
+            />
             <span className="font-heading text-cream text-sm">Fox Hollow</span>
           </Link>
           <div className="flex items-center gap-3">

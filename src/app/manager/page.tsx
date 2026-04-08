@@ -246,7 +246,7 @@ export default function ManagerOverviewPage() {
             </Button>
           </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 flex-wrap">
           <Button
             onClick={handleToggleStatus}
             variant={currentWeek.status === "open" ? "outline" : "default"}
@@ -406,7 +406,7 @@ export default function ManagerOverviewPage() {
                       <Button
                         size="sm"
                         variant="outline"
-                        className="h-7 text-xs border-green-800/20 text-green-800 hover:bg-green-800 hover:text-cream"
+                        className="h-9 min-w-[44px] text-xs border-green-800/20 text-green-800 hover:bg-green-800 hover:text-cream"
                         onClick={() => promoteFromWaitlist({ requestId: req._id })}
                       >
                         <ArrowUp className="w-3 h-3 mr-1" />
@@ -438,22 +438,22 @@ export default function ManagerOverviewPage() {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-2 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap w-full md:w-auto">
                   {/* Search */}
-                  <div className="relative">
+                  <div className="relative w-full sm:w-auto">
                     <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
                     <input
                       type="text"
                       placeholder="Search players..."
                       value={search}
                       onChange={(e) => setSearch(e.target.value)}
-                      className="search-input h-9 pl-9 pr-3 rounded-lg border border-cream-dark bg-white text-sm w-48 focus:outline-none"
+                      className="search-input h-9 pl-9 pr-3 rounded-lg border border-cream-dark bg-white text-sm w-full sm:w-48 focus:outline-none"
                     />
                   </div>
 
                   {/* Filter */}
                   <Select value={filterMode} onValueChange={(v) => setFilterMode(v as FilterMode)}>
-                    <SelectTrigger className="h-9 w-[120px] text-sm">
+                    <SelectTrigger className="h-9 w-[calc(50%-4px)] sm:w-[120px] text-sm">
                       <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
                       <SelectValue />
                     </SelectTrigger>
@@ -466,7 +466,7 @@ export default function ManagerOverviewPage() {
 
                   {/* Sort */}
                   <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
-                    <SelectTrigger className="h-9 w-[140px] text-sm">
+                    <SelectTrigger className="h-9 w-[calc(50%-4px)] sm:w-[140px] text-sm">
                       <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
                       <SelectValue />
                     </SelectTrigger>

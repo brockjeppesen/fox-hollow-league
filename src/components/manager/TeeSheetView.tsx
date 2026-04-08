@@ -146,11 +146,11 @@ export function TeeSheetView({
                         key={pIdx}
                         className="flex items-center justify-between bg-white/70 rounded-xl px-4 py-2.5 transition-colors hover:bg-white/90"
                       >
-                        <div className="flex items-center gap-3">
-                          <span className="w-5 h-5 rounded-full bg-green-800/8 flex items-center justify-center text-[10px] font-semibold text-green-800/50">
+                        <div className="flex items-center gap-3 min-w-0 flex-1">
+                          <span className="w-5 h-5 rounded-full bg-green-800/8 flex items-center justify-center text-[10px] font-semibold text-green-800/50 shrink-0">
                             {pIdx + 1}
                           </span>
-                          <span className="font-medium text-sm text-green-900">
+                          <span className="font-medium text-sm text-green-900 truncate">
                             {player?.name ?? "Unknown"}
                           </span>
                         </div>

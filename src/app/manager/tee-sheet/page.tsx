@@ -145,7 +145,7 @@ export default function TeeSheetPage() {
           </h1>
           <p className="text-muted-foreground mt-1">{playDateStr}</p>
         </div>
-        <div className="flex items-center gap-3 no-print">
+        <div className="flex items-center gap-2 sm:gap-3 flex-wrap no-print">
           {teeSheet && (
             <>
               <Button

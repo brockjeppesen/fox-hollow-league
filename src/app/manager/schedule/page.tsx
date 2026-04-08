@@ -244,7 +244,7 @@ export default function SchedulePage() {
             scheduled
           </p>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto">
           {currentOpen && (
             <Button
               variant="outline"
@@ -283,7 +283,7 @@ export default function SchedulePage() {
       {/* Season Progress Bar */}
       {sortedWeeks.length > 0 && (
         <div className="mb-6 p-4 rounded-xl bg-white ring-1 ring-green-800/10">
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
             <span className="text-sm font-medium text-green-900">
               {seasonStats.currentWeekNum
                 ? `Week ${seasonStats.currentWeekNum} of ${seasonStats.total}`
@@ -292,7 +292,7 @@ export default function SchedulePage() {
                 • {Math.round(seasonStats.progress)}% complete
               </span>
             </span>
-            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+            <div className="flex items-center gap-3 text-xs text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1">
                 <span className="w-2 h-2 rounded-full bg-green-800 inline-block" />
                 {seasonStats.completed} done

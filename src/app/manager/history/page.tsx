@@ -70,12 +70,12 @@ function WeekTeeSheet({ weekId }: { weekId: Id<"weeks"> }) {
       {teeSheet.groups.map((group: any, idx: number) => (
         <div
           key={idx}
-          className="flex items-start gap-3 px-4 py-2.5 bg-white/60 rounded-xl"
+          className="flex items-start gap-3 px-3 sm:px-4 py-2.5 bg-white/60 rounded-xl"
         >
-          <span className="font-medium text-sm text-green-900 whitespace-nowrap min-w-[70px]">
+          <span className="font-medium text-sm text-green-900 whitespace-nowrap min-w-[60px] sm:min-w-[70px]">
             {group.teeTime}
           </span>
-          <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-muted-foreground">
+          <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-sm text-muted-foreground min-w-0">
             {group.players.map((pid: string, pIdx: number) => {
               const player = playerMap.get(pid);
               return (

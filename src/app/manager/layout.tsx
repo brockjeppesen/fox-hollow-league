@@ -114,7 +114,7 @@ export default function ManagerLayout({
             />
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="text-cream p-1"
+              className="text-cream p-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               {mobileMenuOpen ? (
                 <X className="w-6 h-6" />
@@ -139,7 +139,7 @@ export default function ManagerLayout({
                   href={item.href}
                   onClick={() => setMobileMenuOpen(false)}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors",
+                    "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-sm transition-colors",
                     isActive
                       ? "bg-green-700 text-brass font-medium"
                       : "text-cream/70 hover:bg-green-700/50 hover:text-cream"

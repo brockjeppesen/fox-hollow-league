@@ -196,7 +196,7 @@ export default function RosterPage() {
             <span className="font-semibold text-green-800">{players.length}</span> total
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             variant="outline"
             size="sm"

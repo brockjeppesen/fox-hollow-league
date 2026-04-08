@@ -148,6 +148,24 @@ export const upsert = mutation({
   },
 });
 
+export const getSubmissionCounts = query({
+  args: { weekIds: v.array(v.id("weeks")) },
+  handler: async (ctx, args) => {
+    const counts: Record<string, { submitted: number; playing: number }> = {};
+    for (const weekId of args.weekIds) {
+      const requests = await ctx.db
+        .query("weeklyRequests")
+        .withIndex("by_week", (q) => q.eq("weekId", weekId))
+        .collect();
+      counts[weekId] = {
+        submitted: requests.length,
+        playing: requests.filter((r) => r.playing).length,
+      };
+    }
+    return counts;
+  },
+});
+
 export const slotCounts = query({
   args: { weekId: v.id("weeks") },
   handler: async (ctx, args) => {

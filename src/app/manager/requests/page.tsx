@@ -115,8 +115,7 @@ export default function RequestsPage() {
               playing={request.playing}
               wantsWithNames={request.wantsWithNames}
               avoidNames={request.avoidNames}
-              earliestTime={request.earliestTime}
-              latestTime={request.latestTime}
+              timeSlot={request.timeSlot}
               notes={request.notes}
               submittedAt={request.submittedAt}
             />

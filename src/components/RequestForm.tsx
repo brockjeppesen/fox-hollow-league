@@ -6,30 +6,16 @@ import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import { PlayerCombobox } from "@/components/PlayerCombobox";
 import { ConfirmationScreen } from "@/components/ConfirmationScreen";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2, Send } from "lucide-react";
 
-const TIME_OPTIONS = [
-  "3:00 PM",
-  "3:15 PM",
-  "3:30 PM",
-  "3:45 PM",
-  "4:00 PM",
-  "4:15 PM",
-  "4:30 PM",
-  "4:45 PM",
-  "5:00 PM",
-  "5:15 PM",
-  "5:30 PM",
+const SLOTS = [
+  { value: "early", label: "Early", desc: "3:00 – 3:30" },
+  { value: "mid", label: "Mid", desc: "3:30 – 4:15" },
+  { value: "late", label: "Late", desc: "4:15 – 5:00" },
+  { value: "no_preference", label: "No Preference", desc: "Any time" },
 ];
 
 interface RequestFormProps {
@@ -40,14 +26,12 @@ interface RequestFormProps {
   existingRequest: {
     playing: boolean;
     wantsWith: Id<"players">[];
-    earliestTime?: string;
-    latestTime?: string;
+    timeSlot?: string;
     notes?: string;
   } | null;
   preferences: {
     defaultPartners: Id<"players">[];
-    defaultEarliest?: string;
-    defaultLatest?: string;
+    defaultTimeSlot?: string;
   } | null;
 }
 
@@ -70,11 +54,8 @@ export function RequestForm({
   const [wantsWith, setWantsWith] = useState<Id<"players">[]>(
     existingRequest?.wantsWith ?? preferences?.defaultPartners ?? []
   );
-  const [earliestTime, setEarliestTime] = useState<string>(
-    existingRequest?.earliestTime ?? preferences?.defaultEarliest ?? ""
-  );
-  const [latestTime, setLatestTime] = useState<string>(
-    existingRequest?.latestTime ?? preferences?.defaultLatest ?? ""
+  const [timeSlot, setTimeSlot] = useState<string>(
+    existingRequest?.timeSlot ?? preferences?.defaultTimeSlot ?? "no_preference"
   );
   const [notes, setNotes] = useState<string>(existingRequest?.notes ?? "");
   const [submitting, setSubmitting] = useState(false);
@@ -99,8 +80,7 @@ export function RequestForm({
         playing,
         wantsWith: playing ? wantsWith : [],
         avoid: [],
-        earliestTime: playing ? earliestTime || undefined : undefined,
-        latestTime: playing ? latestTime || undefined : undefined,
+        timeSlot: playing ? timeSlot || undefined : undefined,
         notes: playing ? notes || undefined : undefined,
       });
 
@@ -109,8 +89,7 @@ export function RequestForm({
         playerId,
         defaultPartners: wantsWith,
         defaultAvoid: [],
-        defaultEarliest: earliestTime || undefined,
-        defaultLatest: latestTime || undefined,
+        defaultTimeSlot: timeSlot || undefined,
         preferredContact: "link",
       });
 
@@ -132,8 +111,7 @@ export function RequestForm({
         playerName={playerName}
         playing={playing ?? false}
         wantsWithNames={wantsWithNames}
-        earliestTime={earliestTime || undefined}
-        latestTime={latestTime || undefined}
+        timeSlot={timeSlot || undefined}
         notes={notes || undefined}
         isUpdate={!!existingRequest}
       />
@@ -210,44 +188,32 @@ export function RequestForm({
                 />
               </div>
 
-              {/* Time Preferences */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label className="text-cream text-base font-heading">
-                    Earliest time
-                  </Label>
-                  <Select
-                    value={earliestTime}
-                    onValueChange={(val) => setEarliestTime(val ?? "")}
-                  >
-                    <SelectTrigger className="min-h-[56px] bg-white text-green-900 border-cream-dark w-full">
-                      <SelectValue placeholder="Any" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TIME_OPTIONS.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label className="text-cream text-base font-heading">
-                    Latest time
-                  </Label>
-                  <Select value={latestTime} onValueChange={(val) => setLatestTime(val ?? "")}>
-                    <SelectTrigger className="min-h-[56px] bg-white text-green-900 border-cream-dark w-full">
-                      <SelectValue placeholder="Any" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {TIME_OPTIONS.map((time) => (
-                        <SelectItem key={time} value={time}>
-                          {time}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              {/* Time Slot */}
+              <div className="space-y-2">
+                <Label className="text-cream text-base font-heading">
+                  Preferred tee time
+                </Label>
+                <p className="text-cream/40 text-xs">
+                  Choose your preferred window
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  {SLOTS.map((slot) => (
+                    <button
+                      key={slot.value}
+                      type="button"
+                      onClick={() => setTimeSlot(slot.value)}
+                      className={`min-h-[64px] rounded-lg font-semibold transition-all flex flex-col items-center justify-center ${
+                        timeSlot === slot.value
+                          ? "bg-brass text-green-900 ring-2 ring-brass-light"
+                          : "bg-green-700 text-cream/70 hover:bg-green-700/80"
+                      }`}
+                    >
+                      <span className="text-base">{slot.label}</span>
+                      <span className={`text-xs mt-0.5 ${timeSlot === slot.value ? "text-green-900/60" : "text-cream/40"}`}>
+                        {slot.desc}
+                      </span>
+                    </button>
+                  ))}
                 </div>
               </div>
 

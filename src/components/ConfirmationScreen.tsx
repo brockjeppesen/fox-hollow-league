@@ -2,12 +2,18 @@
 
 import { CheckCircle, XCircle } from "lucide-react";
 
+const SLOT_LABELS: Record<string, string> = {
+  early: "Early (3:00–3:30)",
+  mid: "Mid (3:30–4:15)",
+  late: "Late (4:15–5:00)",
+  no_preference: "No Preference",
+};
+
 interface ConfirmationScreenProps {
   playerName: string;
   playing: boolean;
   wantsWithNames: string[];
-  earliestTime?: string;
-  latestTime?: string;
+  timeSlot?: string;
   notes?: string;
   isUpdate?: boolean;
 }
@@ -16,8 +22,7 @@ export function ConfirmationScreen({
   playerName,
   playing,
   wantsWithNames,
-  earliestTime,
-  latestTime,
+  timeSlot,
   notes,
   isUpdate,
 }: ConfirmationScreenProps) {
@@ -63,15 +68,13 @@ export function ConfirmationScreen({
                 </div>
               )}
 
-              {(earliestTime || latestTime) && (
+              {timeSlot && timeSlot !== "no_preference" && (
                 <div>
                   <p className="text-cream/50 text-xs uppercase tracking-wider mb-1">
                     Time preference
                   </p>
                   <p className="text-cream">
-                    {earliestTime && `Earliest: ${earliestTime}`}
-                    {earliestTime && latestTime && " · "}
-                    {latestTime && `Latest: ${latestTime}`}
+                    {SLOT_LABELS[timeSlot] ?? timeSlot}
                   </p>
                 </div>
               )}

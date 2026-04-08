@@ -15,8 +15,7 @@ export default defineSchema({
     playerId: v.id("players"),
     defaultPartners: v.array(v.id("players")),
     defaultAvoid: v.array(v.id("players")),
-    defaultEarliest: v.optional(v.string()),
-    defaultLatest: v.optional(v.string()),
+    defaultTimeSlot: v.optional(v.string()),
     preferredContact: v.string(),
   }).index("by_player", ["playerId"]),
 
@@ -34,8 +33,7 @@ export default defineSchema({
     playing: v.boolean(),
     wantsWith: v.array(v.id("players")),
     avoid: v.array(v.id("players")),
-    earliestTime: v.optional(v.string()),
-    latestTime: v.optional(v.string()),
+    timeSlot: v.optional(v.string()),
     notes: v.optional(v.string()),
     submittedAt: v.number(),
   })

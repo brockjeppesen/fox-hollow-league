@@ -16,8 +16,7 @@ export const upsert = mutation({
     playerId: v.id("players"),
     defaultPartners: v.array(v.id("players")),
     defaultAvoid: v.array(v.id("players")),
-    defaultEarliest: v.optional(v.string()),
-    defaultLatest: v.optional(v.string()),
+    defaultTimeSlot: v.optional(v.string()),
     preferredContact: v.string(),
   },
   handler: async (ctx, args) => {
@@ -30,8 +29,7 @@ export const upsert = mutation({
       await ctx.db.patch(existing._id, {
         defaultPartners: args.defaultPartners,
         defaultAvoid: args.defaultAvoid,
-        defaultEarliest: args.defaultEarliest,
-        defaultLatest: args.defaultLatest,
+        defaultTimeSlot: args.defaultTimeSlot,
         preferredContact: args.preferredContact,
       });
       return existing._id;

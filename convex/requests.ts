@@ -117,8 +117,7 @@ export const upsert = mutation({
     playing: v.boolean(),
     wantsWith: v.array(v.id("players")),
     avoid: v.array(v.id("players")),
-    earliestTime: v.optional(v.string()),
-    latestTime: v.optional(v.string()),
+    timeSlot: v.optional(v.string()),
     notes: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
@@ -135,8 +134,7 @@ export const upsert = mutation({
       playing: args.playing,
       wantsWith: args.wantsWith,
       avoid: args.avoid,
-      earliestTime: args.earliestTime,
-      latestTime: args.latestTime,
+      timeSlot: args.timeSlot,
       notes: args.notes,
       submittedAt: Date.now(),
     };
@@ -147,5 +145,32 @@ export const upsert = mutation({
     } else {
       return await ctx.db.insert("weeklyRequests", data);
     }
+  },
+});
+
+export const slotCounts = query({
+  args: { weekId: v.id("weeks") },
+  handler: async (ctx, args) => {
+    const requests = await ctx.db
+      .query("weeklyRequests")
+      .withIndex("by_week", (q) => q.eq("weekId", args.weekId))
+      .collect();
+
+    const playing = requests.filter((r) => r.playing);
+    const counts: Record<string, number> = {
+      early: 0,
+      mid: 0,
+      late: 0,
+      no_preference: 0,
+    };
+
+    for (const req of playing) {
+      const slot = req.timeSlot ?? "no_preference";
+      if (slot in counts) {
+        counts[slot]++;
+      }
+    }
+
+    return counts;
   },
 });

@@ -4,14 +4,20 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, XCircle, Clock, Users, Ban, MessageSquare } from "lucide-react";
 
+const SLOT_LABELS: Record<string, string> = {
+  early: "Early (3:00–3:30)",
+  mid: "Mid (3:30–4:15)",
+  late: "Late (4:15–5:00)",
+  no_preference: "No Preference",
+};
+
 interface RequestCardProps {
   playerName: string;
   playerHandicap?: number;
   playing: boolean;
   wantsWithNames: string[];
   avoidNames: string[];
-  earliestTime?: string;
-  latestTime?: string;
+  timeSlot?: string;
   notes?: string;
   submittedAt: number;
 }
@@ -22,8 +28,7 @@ export function RequestCard({
   playing,
   wantsWithNames,
   avoidNames,
-  earliestTime,
-  latestTime,
+  timeSlot,
   notes,
   submittedAt,
 }: RequestCardProps) {
@@ -91,16 +96,12 @@ export function RequestCard({
               </div>
             )}
 
-            {(earliestTime || latestTime) && (
+            {timeSlot && timeSlot !== "no_preference" && (
               <div className="flex items-start gap-2">
                 <Clock className="w-4 h-4 text-brass shrink-0 mt-0.5" />
                 <div>
                   <span className="text-muted-foreground text-xs">Time: </span>
-                  <span>
-                    {earliestTime && earliestTime}
-                    {earliestTime && latestTime && " – "}
-                    {latestTime && latestTime}
-                  </span>
+                  <span>{SLOT_LABELS[timeSlot] ?? timeSlot}</span>
                 </div>
               </div>
             )}

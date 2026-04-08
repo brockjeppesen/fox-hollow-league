@@ -1,11 +1,20 @@
 "use client";
 
+import { useState } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
+import { Id } from "@/convex/_generated/dataModel";
 import { WeekOverview } from "@/components/manager/WeekOverview";
 import { CreateWeekDialog } from "@/components/manager/CreateWeekDialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Loader2,
   CheckCircle,
@@ -15,11 +24,30 @@ import {
   CalendarPlus,
   Grid3X3,
   Clock,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import Link from "next/link";
 
 export default function ManagerOverviewPage() {
-  const currentWeek = useQuery(api.weeks.getCurrent);
+  const allWeeks = useQuery(api.weeks.listAll);
+  const autoWeek = useQuery(api.weeks.getCurrent);
+  const [selectedWeekId, setSelectedWeekId] = useState<Id<"weeks"> | null>(null);
+
+  // Sort weeks by date for the selector
+  const sortedWeeks = allWeeks
+    ? [...allWeeks].sort((a, b) => a.playDate - b.playDate)
+    : [];
+
+  // Use selected week, or fall back to auto-detected current week
+  const currentWeek = selectedWeekId
+    ? sortedWeeks.find((w) => w._id === selectedWeekId) ?? autoWeek
+    : autoWeek;
+
+  const currentIndex = currentWeek
+    ? sortedWeeks.findIndex((w) => w._id === currentWeek._id)
+    : -1;
+
   const stats = useQuery(
     api.requests.getStats,
     currentWeek ? { weekId: currentWeek._id } : "skip"
@@ -33,6 +61,13 @@ export default function ManagerOverviewPage() {
     currentWeek ? { weekId: currentWeek._id } : "skip"
   );
   const updateStatus = useMutation(api.weeks.updateStatus);
+
+  const goToPrev = () => {
+    if (currentIndex > 0) setSelectedWeekId(sortedWeeks[currentIndex - 1]._id);
+  };
+  const goToNext = () => {
+    if (currentIndex < sortedWeeks.length - 1) setSelectedWeekId(sortedWeeks[currentIndex + 1]._id);
+  };
 
   // Loading
   if (currentWeek === undefined) {
@@ -87,9 +122,50 @@ export default function ManagerOverviewPage() {
           <h1 className="font-heading text-2xl md:text-3xl text-green-900">
             Overview
           </h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your weekly league schedule
-          </p>
+          {/* Week Selector */}
+          <div className="flex items-center gap-2 mt-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={goToPrev}
+              disabled={currentIndex <= 0}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <Select
+              value={currentWeek?._id}
+              onValueChange={(val) => setSelectedWeekId(val as Id<"weeks">)}
+            >
+              <SelectTrigger className="w-[280px] h-9 text-sm">
+                <SelectValue placeholder="Select week..." />
+              </SelectTrigger>
+              <SelectContent>
+                {sortedWeeks.map((w) => {
+                  const date = new Date(w.playDate).toLocaleDateString("en-US", {
+                    weekday: "short",
+                    month: "short",
+                    day: "numeric",
+                  });
+                  const statusBadge = w.status === "open" ? " 🟢" : w.status === "closed" ? " 🔴" : "";
+                  return (
+                    <SelectItem key={w._id} value={w._id}>
+                      {date} — {(w.format || "TBD").substring(0, 30)}{statusBadge}
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={goToNext}
+              disabled={currentIndex >= sortedWeeks.length - 1}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
         <div className="flex items-center gap-3">
           <Button

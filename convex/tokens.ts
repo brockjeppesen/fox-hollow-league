@@ -83,6 +83,31 @@ export const generate = mutation({
   },
 });
 
+export const getOrCreateForPlayer = mutation({
+  args: { playerId: v.id("players"), weekId: v.id("weeks") },
+  handler: async (ctx, args) => {
+    // Check for existing token
+    const existing = await ctx.db
+      .query("playerTokens")
+      .withIndex("by_player_week", (q) =>
+        q.eq("playerId", args.playerId).eq("weekId", args.weekId)
+      )
+      .first();
+
+    if (existing) return existing.token;
+
+    // Generate new token
+    const token = generateToken();
+    await ctx.db.insert("playerTokens", {
+      playerId: args.playerId,
+      token,
+      weekId: args.weekId,
+    });
+
+    return token;
+  },
+});
+
 export const generateAll = mutation({
   args: { weekId: v.id("weeks") },
   handler: async (ctx, args) => {

@@ -333,9 +333,7 @@
   .no-print,
   aside,
   nav,
-  button,
-  .md\\:hidden,
-  [class*="md:hidden"] {
+  button {
     display: none !important;
   }
 

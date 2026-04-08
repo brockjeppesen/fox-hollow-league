@@ -72,11 +72,18 @@ export const getStats = query({
             .withIndex("by_active", (q) => q.eq("active", true))
             .collect();
         const submittedPlayerIds = new Set(requests.map((r) => r.playerId));
-        const playerStatuses = activePlayers.map((p) => ({
-            _id: p._id,
-            name: p.name,
-            submitted: submittedPlayerIds.has(p._id),
-        }));
+        const requestByPlayer = new Map(requests.map((r) => [r.playerId, r]));
+        const playerStatuses = activePlayers.map((p) => {
+            const req = requestByPlayer.get(p._id);
+            return {
+                _id: p._id,
+                name: p.name,
+                handicapIndex: p.handicapIndex,
+                submitted: submittedPlayerIds.has(p._id),
+                playing: req?.playing ?? false,
+                timeSlot: req?.timeSlot,
+            };
+        });
         return {
             submitted: requests.length,
             total: activePlayers.length,

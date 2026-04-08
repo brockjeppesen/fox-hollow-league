@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
@@ -26,13 +26,24 @@ import {
   Clock,
   ChevronLeft,
   ChevronRight,
+  Search,
+  ArrowUpDown,
+  Filter,
 } from "lucide-react";
 import Link from "next/link";
+
+type SortMode = "alpha" | "status" | "handicap";
+type FilterMode = "all" | "submitted" | "pending";
 
 export default function ManagerOverviewPage() {
   const allWeeks = useQuery(api.weeks.listAll);
   const autoWeek = useQuery(api.weeks.getCurrent);
   const [selectedWeekId, setSelectedWeekId] = useState<Id<"weeks"> | null>(null);
+
+  // Player grid state
+  const [search, setSearch] = useState("");
+  const [sortMode, setSortMode] = useState<SortMode>("status");
+  const [filterMode, setFilterMode] = useState<FilterMode>("all");
 
   // Sort weeks by date for the selector
   const sortedWeeks = allWeeks
@@ -62,11 +73,59 @@ export default function ManagerOverviewPage() {
   );
   const updateStatus = useMutation(api.weeks.updateStatus);
 
+  // Processed player list with search, filter, and sort
+  const processedPlayers = useMemo(() => {
+    if (!stats?.playerStatuses) return [];
+
+    let players = [...stats.playerStatuses];
+
+    // Search
+    if (search.trim()) {
+      const q = search.toLowerCase();
+      players = players.filter((p) => p.name.toLowerCase().includes(q));
+    }
+
+    // Filter
+    if (filterMode === "submitted") {
+      players = players.filter((p) => p.submitted);
+    } else if (filterMode === "pending") {
+      players = players.filter((p) => !p.submitted);
+    }
+
+    // Sort
+    if (sortMode === "alpha") {
+      players.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortMode === "status") {
+      players.sort((a, b) => {
+        if (a.submitted !== b.submitted) return a.submitted ? -1 : 1;
+        return a.name.localeCompare(b.name);
+      });
+    } else if (sortMode === "handicap") {
+      players.sort((a, b) => {
+        const hA = a.handicapIndex ?? 999;
+        const hB = b.handicapIndex ?? 999;
+        if (hA !== hB) return hA - hB;
+        return a.name.localeCompare(b.name);
+      });
+    }
+
+    return players;
+  }, [stats?.playerStatuses, search, sortMode, filterMode]);
+
   const goToPrev = () => {
     if (currentIndex > 0) setSelectedWeekId(sortedWeeks[currentIndex - 1]._id);
   };
   const goToNext = () => {
     if (currentIndex < sortedWeeks.length - 1) setSelectedWeekId(sortedWeeks[currentIndex + 1]._id);
+  };
+
+  const getSlotDotClass = (timeSlot?: string) => {
+    switch (timeSlot) {
+      case "early": return "slot-dot slot-dot-early";
+      case "mid": return "slot-dot slot-dot-mid";
+      case "late": return "slot-dot slot-dot-late";
+      default: return "slot-dot slot-dot-none";
+    }
   };
 
   // Loading
@@ -93,7 +152,7 @@ export default function ManagerOverviewPage() {
           </p>
         </div>
 
-        <Card className="border-0 ring-1 ring-green-800/10 max-w-lg">
+        <Card className="border-0 ring-1 ring-green-800/10 max-w-lg animate-scale-in">
           <CardContent className="py-12 text-center">
             <div className="w-16 h-16 rounded-full bg-green-800/10 flex items-center justify-center mx-auto mb-4">
               <CalendarPlus className="w-8 h-8 text-green-800" />
@@ -117,7 +176,7 @@ export default function ManagerOverviewPage() {
   return (
     <div className="p-6 md:p-10">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8 animate-fade-in">
         <div>
           <h1 className="font-heading text-2xl md:text-3xl text-green-900">
             Overview
@@ -137,21 +196,8 @@ export default function ManagerOverviewPage() {
               value={currentWeek?._id}
               onValueChange={(val) => setSelectedWeekId(val as Id<"weeks">)}
             >
-              <SelectTrigger className="w-[320px] h-9 text-sm">
-                {currentWeek ? (
-                  <span>
-                    {new Date(currentWeek.playDate).toLocaleDateString("en-US", {
-                      weekday: "short",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                    {" — "}
-                    {(currentWeek.format || "TBD").substring(0, 30)}
-                    {currentWeek.status === "open" ? " 🟢" : currentWeek.status === "closed" ? " 🔴" : ""}
-                  </span>
-                ) : (
-                  <SelectValue placeholder="Select week..." />
-                )}
+              <SelectTrigger className="w-[280px] h-9 text-sm">
+                <SelectValue placeholder="Select week..." />
               </SelectTrigger>
               <SelectContent>
                 {sortedWeeks.map((w) => {
@@ -209,18 +255,20 @@ export default function ManagerOverviewPage() {
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Week Overview Card */}
         {stats && (
-          <WeekOverview
-            playDate={currentWeek.playDate}
-            deadline={currentWeek.deadline}
-            status={currentWeek.status}
-            submitted={stats.submitted}
-            total={stats.total}
-            playing={stats.playing}
-          />
+          <div className="animate-fade-in-delay">
+            <WeekOverview
+              playDate={currentWeek.playDate}
+              deadline={currentWeek.deadline}
+              status={currentWeek.status}
+              submitted={stats.submitted}
+              total={stats.total}
+              playing={stats.playing}
+            />
+          </div>
         )}
 
         {/* Slot Distribution + Tee Sheet Status */}
-        <div className="space-y-6">
+        <div className="space-y-6 animate-fade-in-delay-2">
           {/* Slot Counts */}
           {slotCounts && (
             <Card className="border-0 ring-1 ring-green-800/10">
@@ -231,42 +279,49 @@ export default function ManagerOverviewPage() {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-2 gap-3 animate-stagger">
                   {[
                     {
                       label: "Early",
                       desc: "3:00–3:30",
                       count: slotCounts.early,
                       color: "bg-green-700/20 text-green-900",
+                      dot: "slot-dot-early",
                     },
                     {
                       label: "Mid",
                       desc: "3:30–4:15",
                       count: slotCounts.mid,
                       color: "bg-blue-700/10 text-blue-900",
+                      dot: "slot-dot-mid",
                     },
                     {
                       label: "Late",
                       desc: "4:15–5:00",
                       count: slotCounts.late,
                       color: "bg-amber-700/10 text-amber-900",
+                      dot: "slot-dot-late",
                     },
                     {
                       label: "No Pref",
                       desc: "Any time",
                       count: slotCounts.no_preference,
                       color: "bg-cream-dark/50 text-muted-foreground",
+                      dot: "slot-dot-none",
                     },
                   ].map((slot) => (
                     <div
                       key={slot.label}
-                      className={`rounded-lg p-3 ${slot.color}`}
+                      className={`rounded-xl p-4 ${slot.color} premium-card`}
                     >
-                      <div className="text-2xl font-heading font-bold">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`slot-dot ${slot.dot}`} />
+                        <span className="text-sm font-medium">{slot.label}</span>
+                      </div>
+                      <div className="text-3xl font-heading font-bold leading-none mt-1">
                         {slot.count}
                       </div>
-                      <div className="text-sm font-medium">{slot.label}</div>
-                      <div className="text-xs opacity-60">{slot.desc}</div>
+                      <div className="text-xs opacity-50 mt-1">{slot.desc}</div>
                     </div>
                   ))}
                 </div>
@@ -275,7 +330,7 @@ export default function ManagerOverviewPage() {
           )}
 
           {/* Tee Sheet Quick Status */}
-          <Card className="border-0 ring-1 ring-green-800/10">
+          <Card className="border-0 ring-1 ring-green-800/10 premium-card">
             <CardContent className="py-5">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -305,38 +360,128 @@ export default function ManagerOverviewPage() {
           </Card>
         </div>
 
-        {/* Player Grid */}
+        {/* ═══════════════════════════════════════
+            PLAYER STATUS GRID — Premium overhaul
+            ═══════════════════════════════════════ */}
         {stats && (
           <Card className="border-0 ring-1 ring-green-800/10 lg:col-span-2">
-            <CardHeader>
-              <CardTitle className="text-xl">Player Status</CardTitle>
+            <CardHeader className="pb-4">
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                <div>
+                  <CardTitle className="text-xl">Player Status</CardTitle>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    <span className="font-semibold text-green-800">{stats.playing}</span> playing
+                    {" · "}
+                    <span className="font-semibold text-green-800">{stats.notPlaying}</span> not playing
+                    {" · "}
+                    <span className="font-semibold text-brass">{stats.total - stats.submitted}</span> pending
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Search */}
+                  <div className="relative">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Search players..."
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      className="search-input h-9 pl-9 pr-3 rounded-lg border border-cream-dark bg-white text-sm w-48 focus:outline-none"
+                    />
+                  </div>
+
+                  {/* Filter */}
+                  <Select value={filterMode} onValueChange={(v) => setFilterMode(v as FilterMode)}>
+                    <SelectTrigger className="h-9 w-[120px] text-sm">
+                      <Filter className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All</SelectItem>
+                      <SelectItem value="submitted">Submitted</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  {/* Sort */}
+                  <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
+                    <SelectTrigger className="h-9 w-[140px] text-sm">
+                      <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-muted-foreground" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="status">By Status</SelectItem>
+                      <SelectItem value="alpha">Alphabetical</SelectItem>
+                      <SelectItem value="handicap">By Handicap</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
             </CardHeader>
             <CardContent>
-              {stats.playerStatuses.length === 0 ? (
-                <p className="text-muted-foreground text-sm py-4">
-                  No active players in the roster yet.
+              {processedPlayers.length === 0 ? (
+                <p className="text-muted-foreground text-sm py-8 text-center">
+                  {search ? "No players match your search." : "No active players in the roster yet."}
                 </p>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
-                  {stats.playerStatuses.map((player) => (
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-2 animate-stagger">
+                  {processedPlayers.map((player) => (
                     <div
                       key={player._id}
-                      className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm ${
+                      className={`player-tile flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm cursor-default ${
                         player.submitted
-                          ? "bg-green-800/5 text-green-900"
-                          : "bg-cream-dark/50 text-muted-foreground"
+                          ? player.playing
+                            ? "bg-green-800/5 ring-1 ring-green-800/10 text-green-900"
+                            : "bg-red-50 ring-1 ring-red-200/50 text-red-900/70"
+                          : "bg-cream-dark/40 text-muted-foreground"
                       }`}
                     >
+                      {/* Status icon */}
                       {player.submitted ? (
-                        <CheckCircle className="w-4 h-4 text-green-700 shrink-0" />
+                        player.playing ? (
+                          <CheckCircle className="w-4 h-4 text-green-700 shrink-0" />
+                        ) : (
+                          <Circle className="w-4 h-4 text-red-400 shrink-0" />
+                        )
                       ) : (
                         <Circle className="w-4 h-4 text-cream-dark shrink-0" />
                       )}
-                      <span className="truncate">{player.name}</span>
+
+                      {/* Name + handicap */}
+                      <div className="flex-1 min-w-0">
+                        <span className="truncate block leading-tight">{player.name}</span>
+                        {player.handicapIndex !== undefined && (
+                          <span className="text-[10px] text-muted-foreground leading-none">
+                            {player.handicapIndex.toFixed(1)}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Time slot dot for submitted+playing players */}
+                      {player.submitted && player.playing && (
+                        <span className={getSlotDotClass(player.timeSlot)} title={player.timeSlot || "No preference"} />
+                      )}
                     </div>
                   ))}
                 </div>
               )}
+
+              {/* Legend */}
+              <div className="flex flex-wrap items-center gap-4 mt-5 pt-4 border-t border-cream-dark/80 text-xs text-muted-foreground">
+                <span className="flex items-center gap-1.5">
+                  <span className="slot-dot slot-dot-early" /> Early
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="slot-dot slot-dot-mid" /> Mid
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="slot-dot slot-dot-late" /> Late
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <span className="slot-dot slot-dot-none" /> No Pref
+                </span>
+              </div>
             </CardContent>
           </Card>
         )}

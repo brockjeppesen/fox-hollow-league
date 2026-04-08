@@ -124,16 +124,33 @@
   }
 }
 
-/* Page transition animations */
+/* ═══════════════════════════════════════════════════
+   ANIMATIONS — Premium motion system
+   ═══════════════════════════════════════════════════ */
+
 @keyframes fadeSlideIn {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-12px); }
+  to { opacity: 1; transform: translateX(0); }
 }
 
 .animate-fade-in {
@@ -150,6 +167,201 @@
   animation: fadeSlideIn 0.4s ease-out 0.3s forwards;
 }
 
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-scale-in {
+  animation: scaleIn 0.35s ease-out forwards;
+  opacity: 0;
+}
+
+/* Staggered children animation — up to 30 children */
+.animate-stagger > * {
+  animation: fadeInUp 0.4s ease-out forwards;
+  opacity: 0;
+}
+
+.animate-stagger > *:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger > *:nth-child(2) { animation-delay: 30ms; }
+.animate-stagger > *:nth-child(3) { animation-delay: 60ms; }
+.animate-stagger > *:nth-child(4) { animation-delay: 90ms; }
+.animate-stagger > *:nth-child(5) { animation-delay: 120ms; }
+.animate-stagger > *:nth-child(6) { animation-delay: 150ms; }
+.animate-stagger > *:nth-child(7) { animation-delay: 180ms; }
+.animate-stagger > *:nth-child(8) { animation-delay: 210ms; }
+.animate-stagger > *:nth-child(9) { animation-delay: 240ms; }
+.animate-stagger > *:nth-child(10) { animation-delay: 270ms; }
+.animate-stagger > *:nth-child(n+11):nth-child(-n+15) { animation-delay: 300ms; }
+.animate-stagger > *:nth-child(n+16):nth-child(-n+20) { animation-delay: 350ms; }
+.animate-stagger > *:nth-child(n+21):nth-child(-n+30) { animation-delay: 400ms; }
+.animate-stagger > *:nth-child(n+31) { animation-delay: 450ms; }
+
+/* Slower stagger for card grids */
+.animate-stagger-slow > * {
+  animation: fadeInUp 0.5s ease-out forwards;
+  opacity: 0;
+}
+.animate-stagger-slow > *:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger-slow > *:nth-child(2) { animation-delay: 80ms; }
+.animate-stagger-slow > *:nth-child(3) { animation-delay: 160ms; }
+.animate-stagger-slow > *:nth-child(4) { animation-delay: 240ms; }
+.animate-stagger-slow > *:nth-child(5) { animation-delay: 320ms; }
+.animate-stagger-slow > *:nth-child(6) { animation-delay: 400ms; }
+.animate-stagger-slow > *:nth-child(7) { animation-delay: 480ms; }
+.animate-stagger-slow > *:nth-child(8) { animation-delay: 560ms; }
+.animate-stagger-slow > *:nth-child(9) { animation-delay: 640ms; }
+.animate-stagger-slow > *:nth-child(10) { animation-delay: 720ms; }
+.animate-stagger-slow > *:nth-child(n+11) { animation-delay: 800ms; }
+
+/* Row stagger for tables */
+.animate-stagger-rows > tr {
+  animation: fadeInUp 0.35s ease-out forwards;
+  opacity: 0;
+}
+.animate-stagger-rows > tr:nth-child(1) { animation-delay: 0ms; }
+.animate-stagger-rows > tr:nth-child(2) { animation-delay: 30ms; }
+.animate-stagger-rows > tr:nth-child(3) { animation-delay: 60ms; }
+.animate-stagger-rows > tr:nth-child(4) { animation-delay: 90ms; }
+.animate-stagger-rows > tr:nth-child(5) { animation-delay: 120ms; }
+.animate-stagger-rows > tr:nth-child(6) { animation-delay: 150ms; }
+.animate-stagger-rows > tr:nth-child(7) { animation-delay: 180ms; }
+.animate-stagger-rows > tr:nth-child(8) { animation-delay: 210ms; }
+.animate-stagger-rows > tr:nth-child(9) { animation-delay: 240ms; }
+.animate-stagger-rows > tr:nth-child(10) { animation-delay: 270ms; }
+.animate-stagger-rows > tr:nth-child(n+11):nth-child(-n+20) { animation-delay: 300ms; }
+.animate-stagger-rows > tr:nth-child(n+21) { animation-delay: 350ms; }
+
+/* ═══════════════════════════════════════════════════
+   PREMIUM TABLE STYLES
+   ═══════════════════════════════════════════════════ */
+
+/* Alternating row tints */
+.premium-table tbody tr:nth-child(even) {
+  background-color: rgba(245, 240, 232, 0.4);
+}
+
+.premium-table tbody tr {
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.premium-table tbody tr:hover {
+  background-color: rgba(26, 58, 42, 0.04);
+}
+
+/* Sortable column headers */
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: color 0.2s ease;
+}
+
+.sortable-header:hover {
+  color: var(--green-800);
+}
+
+/* Time slot pill badges */
+.slot-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 10px;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+}
+
+.slot-pill-early {
+  background-color: rgba(45, 90, 61, 0.12);
+  color: #2d5a3d;
+}
+
+.slot-pill-mid {
+  background-color: rgba(59, 130, 246, 0.1);
+  color: #1e40af;
+}
+
+.slot-pill-late {
+  background-color: rgba(217, 119, 6, 0.1);
+  color: #92400e;
+}
+
+.slot-pill-none {
+  background-color: rgba(107, 114, 128, 0.08);
+  color: #6b7280;
+}
+
+/* Partner chips */
+.partner-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  background-color: rgba(26, 58, 42, 0.06);
+  color: var(--green-800);
+  white-space: nowrap;
+}
+
+/* Time slot dot indicators */
+.slot-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+
+.slot-dot-early { background-color: #2d5a3d; }
+.slot-dot-mid { background-color: #3b82f6; }
+.slot-dot-late { background-color: #d97706; }
+.slot-dot-none { background-color: #d1d5db; }
+
+/* ═══════════════════════════════════════════════════
+   PRINT STYLES
+   ═══════════════════════════════════════════════════ */
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+    font-size: 11pt;
+  }
+
+  .no-print,
+  aside,
+  nav,
+  button,
+  .md\\:hidden,
+  [class*="md:hidden"] {
+    display: none !important;
+  }
+
+  .print-break-avoid {
+    break-inside: avoid;
+  }
+
+  .print-full-width {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* Tee sheet cards print nicely */
+  .tee-sheet-card {
+    break-inside: avoid;
+    border: 1px solid #ccc !important;
+    box-shadow: none !important;
+    margin-bottom: 8px;
+  }
+
+  .tee-sheet-card * {
+    animation: none !important;
+    opacity: 1 !important;
+  }
+}
+
 /* Prevent iOS Safari zoom on input focus */
 input, select, textarea, button {
   font-size: 16px !important;
@@ -158,4 +370,47 @@ input, select, textarea, button {
 /* Hover transitions */
 .transition-colors-smooth {
   transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+
+/* Search input premium style */
+.search-input {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 3px rgba(201, 168, 76, 0.15);
+  border-color: var(--brass);
+}
+
+/* Premium card hover */
+.premium-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.premium-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(13, 31, 22, 0.08);
+}
+
+/* Player tile hover */
+.player-tile {
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+}
+
+.player-tile:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 8px rgba(13, 31, 22, 0.1);
+}
+
+/* Inline edit cell */
+.inline-edit-cell {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-radius: 4px;
+  padding: 2px 4px;
+  margin: -2px -4px;
+}
+
+.inline-edit-cell:hover {
+  background-color: rgba(201, 168, 76, 0.08);
 }

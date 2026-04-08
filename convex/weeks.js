@@ -1,4 +1,4 @@
-import { query, mutation } from "./_generated/server";
+import { query, mutation, internalMutation } from "./_generated/server";
 import { v } from "convex/values";
 export const list = query({
     args: {},
@@ -130,5 +130,35 @@ export const listCompleted = query({
         const weeks = await ctx.db.query("weeks").collect();
         // Return all weeks sorted by date descending (past first)
         return weeks.sort((a, b) => b.playDate - a.playDate);
+    },
+});
+// Auto-close open weeks past their deadline and auto-open the next draft week
+export const autoCloseExpired = internalMutation({
+    args: {},
+    handler: async (ctx) => {
+        const now = Date.now();
+        const openWeeks = await ctx.db
+            .query("weeks")
+            .withIndex("by_status", (q) => q.eq("status", "open"))
+            .collect();
+        let closedCount = 0;
+        for (const week of openWeeks) {
+            if (week.deadline <= now) {
+                await ctx.db.patch(week._id, { status: "closed" });
+                closedCount++;
+                // Auto-open next draft week
+                const draftWeeks = await ctx.db
+                    .query("weeks")
+                    .withIndex("by_status", (q) => q.eq("status", "draft"))
+                    .collect();
+                const nextDraft = draftWeeks
+                    .filter((w) => w.playDate >= now)
+                    .sort((a, b) => a.playDate - b.playDate)[0];
+                if (nextDraft) {
+                    await ctx.db.patch(nextDraft._id, { status: "open" });
+                }
+            }
+        }
+        return { closedCount };
     },
 });

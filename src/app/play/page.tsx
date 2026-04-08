@@ -106,8 +106,8 @@ export default function PlayPage() {
     <div className="min-h-screen bg-green-800 text-cream relative overflow-hidden">
       {/* Background blurs */}
       <div className="absolute inset-0 opacity-5 pointer-events-none">
-        <div className="absolute top-20 right-0 w-[500px] h-[500px] rounded-full bg-brass blur-[200px]" />
-        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] rounded-full bg-green-600 blur-[150px]" />
+        <div className="absolute top-20 right-0 w-[min(500px,80vw)] h-[min(500px,80vw)] rounded-full bg-brass blur-[200px]" />
+        <div className="absolute bottom-0 left-0 w-[min(300px,60vw)] h-[min(300px,60vw)] rounded-full bg-green-600 blur-[150px]" />
       </div>
 
       <div className="relative z-10 flex flex-col min-h-screen">

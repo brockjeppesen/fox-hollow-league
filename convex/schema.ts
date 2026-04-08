@@ -66,21 +66,4 @@ export default defineSchema({
     .index("by_token", ["token"])
     .index("by_player_week", ["playerId", "weekId"]),
 
-  scores: defineTable({
-    weekId: v.id("weeks"),
-    playerId: v.id("players"),
-    grossScore: v.optional(v.number()),
-    netScore: v.optional(v.number()),
-    points: v.optional(v.number()),
-    enteredAt: v.number(),
-  }).index("by_week", ["weekId"]).index("by_player", ["playerId"]),
-
-  standings: defineTable({
-    playerId: v.id("players"),
-    season: v.string(),
-    totalPoints: v.number(),
-    roundsPlayed: v.number(),
-    avgScore: v.optional(v.number()),
-    bestFinish: v.optional(v.number()),
-  }).index("by_season_points", ["season", "totalPoints"]),
 });

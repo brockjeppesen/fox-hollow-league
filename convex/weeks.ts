@@ -79,9 +79,47 @@ export const updateStatus = mutation({
   args: {
     id: v.id("weeks"),
     status: v.string(),
+    autoOpenNext: v.optional(v.boolean()),
   },
   handler: async (ctx, args) => {
     await ctx.db.patch(args.id, { status: args.status });
+
+    // Auto-open: when closing a week, automatically open the next draft week
+    if (args.status === "closed" && args.autoOpenNext !== false) {
+      const now = Date.now();
+      const draftWeeks = await ctx.db
+        .query("weeks")
+        .withIndex("by_status", (q) => q.eq("status", "draft"))
+        .collect();
+      const nextDraft = draftWeeks
+        .filter((w) => w.playDate >= now)
+        .sort((a, b) => a.playDate - b.playDate)[0];
+      if (nextDraft) {
+        await ctx.db.patch(nextDraft._id, { status: "open" });
+        return { autoOpened: nextDraft._id, playDate: nextDraft.playDate };
+      }
+    }
+    return null;
+  },
+});
+
+// Open multiple upcoming weeks at once
+export const openNextWeeks = mutation({
+  args: { count: v.number() },
+  handler: async (ctx, args) => {
+    const now = Date.now();
+    const draftWeeks = await ctx.db
+      .query("weeks")
+      .withIndex("by_status", (q) => q.eq("status", "draft"))
+      .collect();
+    const upcoming = draftWeeks
+      .filter((w) => w.playDate >= now)
+      .sort((a, b) => a.playDate - b.playDate)
+      .slice(0, args.count);
+    for (const week of upcoming) {
+      await ctx.db.patch(week._id, { status: "open" });
+    }
+    return upcoming.length;
   },
 });
 

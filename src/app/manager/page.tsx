@@ -175,9 +175,19 @@ export default function ManagerOverviewPage() {
     );
   }
 
+  const openNextWeeks = useMutation(api.weeks.openNextWeeks);
+
   const handleToggleStatus = async () => {
-    const newStatus = currentWeek.status === "open" ? "closed" : "open";
-    await updateStatus({ id: currentWeek._id, status: newStatus });
+    if (currentWeek.status === "open") {
+      // Close current week — auto-opens next one
+      await updateStatus({ id: currentWeek._id, status: "closed", autoOpenNext: true });
+    } else if (currentWeek.status === "closed" || currentWeek.status === "draft") {
+      await updateStatus({ id: currentWeek._id, status: "open" });
+    }
+  };
+
+  const handleOpenNext3 = async () => {
+    await openNextWeeks({ count: 3 });
   };
 
   return (
@@ -246,29 +256,40 @@ export default function ManagerOverviewPage() {
             </Button>
           </div>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
           <Button
             onClick={handleToggleStatus}
             variant={currentWeek.status === "open" ? "outline" : "default"}
             className={
               currentWeek.status === "open"
-                ? "border-green-800 text-green-800 hover:bg-green-800 hover:text-cream"
+                ? "border-amber-600 text-amber-700 hover:bg-amber-600 hover:text-white"
                 : "bg-green-800 text-cream hover:bg-green-700"
             }
           >
             {currentWeek.status === "open" ? (
               <>
                 <Pause className="w-4 h-4 mr-1.5" />
-                Close Submissions
+                Close & Open Next
+              </>
+            ) : currentWeek.status === "closed" ? (
+              <>
+                <Play className="w-4 h-4 mr-1.5" />
+                Reopen
               </>
             ) : (
               <>
                 <Play className="w-4 h-4 mr-1.5" />
-                Open Submissions
+                Open Week
               </>
             )}
           </Button>
-          <CreateWeekDialog />
+          <Button
+            onClick={handleOpenNext3}
+            variant="outline"
+            className="border-green-800/30 text-green-800 hover:bg-green-800 hover:text-cream"
+          >
+            Open Next 3 Weeks
+          </Button>
         </div>
       </div>
 

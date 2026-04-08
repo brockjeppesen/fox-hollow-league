@@ -6,20 +6,20 @@ interface ConfirmationScreenProps {
   playerName: string;
   playing: boolean;
   wantsWithNames: string[];
-  avoidNames: string[];
   earliestTime?: string;
   latestTime?: string;
   notes?: string;
+  isUpdate?: boolean;
 }
 
 export function ConfirmationScreen({
   playerName,
   playing,
   wantsWithNames,
-  avoidNames,
   earliestTime,
   latestTime,
   notes,
+  isUpdate,
 }: ConfirmationScreenProps) {
   return (
     <div className="min-h-screen bg-green-800 flex items-center justify-center px-6 py-12">
@@ -29,10 +29,10 @@ export function ConfirmationScreen({
         </div>
 
         <h1 className="font-heading text-3xl text-cream mb-2">
-          You&apos;re All Set!
+          {isUpdate ? "Submission Updated!" : "You're All Set!"}
         </h1>
         <p className="text-cream/60 text-lg mb-10">
-          Thanks, {playerName}. Your preferences have been submitted.
+          Thanks, {playerName}. Your preferences have been {isUpdate ? "updated" : "submitted"}.
         </p>
 
         <div className="bg-green-700/50 rounded-xl p-6 text-left space-y-4 mb-10">
@@ -60,15 +60,6 @@ export function ConfirmationScreen({
                     Wants to play with
                   </p>
                   <p className="text-cream">{wantsWithNames.join(", ")}</p>
-                </div>
-              )}
-
-              {avoidNames.length > 0 && (
-                <div>
-                  <p className="text-cream/50 text-xs uppercase tracking-wider mb-1">
-                    Prefers to avoid
-                  </p>
-                  <p className="text-cream">{avoidNames.join(", ")}</p>
                 </div>
               )}
 

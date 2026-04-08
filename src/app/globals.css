@@ -150,6 +150,11 @@
   animation: fadeSlideIn 0.4s ease-out 0.3s forwards;
 }
 
+/* Prevent iOS Safari zoom on input focus */
+input, select, textarea, button {
+  font-size: 16px !important;
+}
+
 /* Hover transitions */
 .transition-colors-smooth {
   transition: color 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;

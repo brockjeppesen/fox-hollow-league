@@ -19,27 +19,17 @@ import { Label } from "@/components/ui/label";
 import { Loader2, Send } from "lucide-react";
 
 const TIME_OPTIONS = [
-  "6:00 AM",
-  "6:30 AM",
-  "7:00 AM",
-  "7:30 AM",
-  "8:00 AM",
-  "8:30 AM",
-  "9:00 AM",
-  "9:30 AM",
-  "10:00 AM",
-  "10:30 AM",
-  "11:00 AM",
-  "11:30 AM",
-  "12:00 PM",
-  "12:30 PM",
-  "1:00 PM",
-  "1:30 PM",
-  "2:00 PM",
-  "2:30 PM",
   "3:00 PM",
+  "3:15 PM",
   "3:30 PM",
+  "3:45 PM",
   "4:00 PM",
+  "4:15 PM",
+  "4:30 PM",
+  "4:45 PM",
+  "5:00 PM",
+  "5:15 PM",
+  "5:30 PM",
 ];
 
 interface RequestFormProps {
@@ -50,14 +40,12 @@ interface RequestFormProps {
   existingRequest: {
     playing: boolean;
     wantsWith: Id<"players">[];
-    avoid: Id<"players">[];
     earliestTime?: string;
     latestTime?: string;
     notes?: string;
   } | null;
   preferences: {
     defaultPartners: Id<"players">[];
-    defaultAvoid: Id<"players">[];
     defaultEarliest?: string;
     defaultLatest?: string;
   } | null;
@@ -81,9 +69,6 @@ export function RequestForm({
   );
   const [wantsWith, setWantsWith] = useState<Id<"players">[]>(
     existingRequest?.wantsWith ?? preferences?.defaultPartners ?? []
-  );
-  const [avoid, setAvoid] = useState<Id<"players">[]>(
-    existingRequest?.avoid ?? preferences?.defaultAvoid ?? []
   );
   const [earliestTime, setEarliestTime] = useState<string>(
     existingRequest?.earliestTime ?? preferences?.defaultEarliest ?? ""
@@ -113,7 +98,7 @@ export function RequestForm({
         playerId,
         playing,
         wantsWith: playing ? wantsWith : [],
-        avoid: playing ? avoid : [],
+        avoid: [],
         earliestTime: playing ? earliestTime || undefined : undefined,
         latestTime: playing ? latestTime || undefined : undefined,
         notes: playing ? notes || undefined : undefined,
@@ -123,7 +108,7 @@ export function RequestForm({
       await upsertPreferences({
         playerId,
         defaultPartners: wantsWith,
-        defaultAvoid: avoid,
+        defaultAvoid: [],
         defaultEarliest: earliestTime || undefined,
         defaultLatest: latestTime || undefined,
         preferredContact: "link",
@@ -141,19 +126,16 @@ export function RequestForm({
     const wantsWithNames = otherPlayers
       .filter((p) => wantsWith.includes(p._id))
       .map((p) => p.name);
-    const avoidNames = otherPlayers
-      .filter((p) => avoid.includes(p._id))
-      .map((p) => p.name);
 
     return (
       <ConfirmationScreen
         playerName={playerName}
         playing={playing ?? false}
         wantsWithNames={wantsWithNames}
-        avoidNames={avoidNames}
         earliestTime={earliestTime || undefined}
         latestTime={latestTime || undefined}
         notes={notes || undefined}
+        isUpdate={!!existingRequest}
       />
     );
   }
@@ -170,8 +152,10 @@ export function RequestForm({
             Hey, {playerName}!
           </h1>
           <p className="text-cream/60">
-            Submit your preferences for{" "}
-            <span className="text-brass">{formattedDate}</span>
+            {existingRequest
+              ? <>Update your submission for{" "}<span className="text-brass">{formattedDate}</span></>
+              : <>Submit your preferences for{" "}<span className="text-brass">{formattedDate}</span></>
+            }
           </p>
         </div>
 
@@ -221,25 +205,6 @@ export function RequestForm({
                   players={otherPlayers}
                   selected={wantsWith}
                   onChange={setWantsWith}
-                  excludeIds={avoid}
-                  max={3}
-                  placeholder="Search for a player..."
-                />
-              </div>
-
-              {/* Avoid */}
-              <div className="space-y-2">
-                <Label className="text-cream text-base font-heading">
-                  Prefer to avoid
-                </Label>
-                <p className="text-cream/40 text-xs">
-                  Anyone you&apos;d rather not be grouped with this week
-                </p>
-                <PlayerCombobox
-                  players={otherPlayers}
-                  selected={avoid}
-                  onChange={setAvoid}
-                  excludeIds={wantsWith}
                   max={3}
                   placeholder="Search for a player..."
                 />

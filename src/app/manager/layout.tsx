@@ -163,7 +163,7 @@ export default function ManagerLayout({
       </div>
 
       {/* Main Content */}
-      <main className="flex-1 md:overflow-y-auto">
+      <main className="flex-1 overflow-x-hidden overflow-y-auto min-w-0">
         <div className="pt-14 md:pt-0">{children}</div>
       </main>
     </div>

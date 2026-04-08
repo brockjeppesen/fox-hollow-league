@@ -203,7 +203,7 @@ export default function ManagerOverviewPage() {
               value={currentWeek?._id}
               onValueChange={(val) => setSelectedWeekId(val as Id<"weeks">)}
             >
-              <SelectTrigger className="w-[320px] h-9 text-sm">
+              <SelectTrigger className="w-full max-w-[320px] h-9 text-sm">
                 {currentWeek ? (
                   <span className="truncate">
                     {new Date(currentWeek.playDate).toLocaleDateString("en-US", {

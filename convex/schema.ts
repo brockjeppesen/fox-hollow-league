@@ -40,6 +40,17 @@ export default defineSchema({
     .index("by_week", ["weekId"])
     .index("by_week_player", ["weekId", "playerId"]),
 
+  teeSheets: defineTable({
+    weekId: v.id("weeks"),
+    generatedAt: v.number(),
+    groups: v.array(v.object({
+      teeTime: v.string(),
+      players: v.array(v.id("players")),
+      cartNote: v.optional(v.string()),
+    })),
+    status: v.string(),
+  }).index("by_week", ["weekId"]),
+
   playerTokens: defineTable({
     playerId: v.id("players"),
     token: v.string(),

@@ -13,8 +13,7 @@ export default defineSchema({
         playerId: v.id("players"),
         defaultPartners: v.array(v.id("players")),
         defaultAvoid: v.array(v.id("players")),
-        defaultEarliest: v.optional(v.string()),
-        defaultLatest: v.optional(v.string()),
+        defaultTimeSlot: v.optional(v.string()),
         preferredContact: v.string(),
     }).index("by_player", ["playerId"]),
     weeks: defineTable({
@@ -30,13 +29,22 @@ export default defineSchema({
         playing: v.boolean(),
         wantsWith: v.array(v.id("players")),
         avoid: v.array(v.id("players")),
-        earliestTime: v.optional(v.string()),
-        latestTime: v.optional(v.string()),
+        timeSlot: v.optional(v.string()),
         notes: v.optional(v.string()),
         submittedAt: v.number(),
     })
         .index("by_week", ["weekId"])
         .index("by_week_player", ["weekId", "playerId"]),
+    teeSheets: defineTable({
+        weekId: v.id("weeks"),
+        generatedAt: v.number(),
+        groups: v.array(v.object({
+            teeTime: v.string(),
+            players: v.array(v.id("players")),
+            cartNote: v.optional(v.string()),
+        })),
+        status: v.string(),
+    }).index("by_week", ["weekId"]),
     playerTokens: defineTable({
         playerId: v.id("players"),
         token: v.string(),

@@ -13,12 +13,23 @@ import {
   Play,
   Pause,
   CalendarPlus,
+  Grid3X3,
+  Clock,
 } from "lucide-react";
+import Link from "next/link";
 
 export default function ManagerOverviewPage() {
   const currentWeek = useQuery(api.weeks.getCurrent);
   const stats = useQuery(
     api.requests.getStats,
+    currentWeek ? { weekId: currentWeek._id } : "skip"
+  );
+  const slotCounts = useQuery(
+    api.requests.slotCounts,
+    currentWeek ? { weekId: currentWeek._id } : "skip"
+  );
+  const teeSheet = useQuery(
+    api.teeSheet.getByWeek,
     currentWeek ? { weekId: currentWeek._id } : "skip"
   );
   const updateStatus = useMutation(api.weeks.updateStatus);
@@ -119,9 +130,95 @@ export default function ManagerOverviewPage() {
           />
         )}
 
+        {/* Slot Distribution + Tee Sheet Status */}
+        <div className="space-y-6">
+          {/* Slot Counts */}
+          {slotCounts && (
+            <Card className="border-0 ring-1 ring-green-800/10">
+              <CardHeader>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Clock className="w-5 h-5 text-brass" />
+                  Time Slot Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    {
+                      label: "Early",
+                      desc: "3:00–3:30",
+                      count: slotCounts.early,
+                      color: "bg-green-700/20 text-green-900",
+                    },
+                    {
+                      label: "Mid",
+                      desc: "3:30–4:15",
+                      count: slotCounts.mid,
+                      color: "bg-blue-700/10 text-blue-900",
+                    },
+                    {
+                      label: "Late",
+                      desc: "4:15–5:00",
+                      count: slotCounts.late,
+                      color: "bg-amber-700/10 text-amber-900",
+                    },
+                    {
+                      label: "No Pref",
+                      desc: "Any time",
+                      count: slotCounts.no_preference,
+                      color: "bg-cream-dark/50 text-muted-foreground",
+                    },
+                  ].map((slot) => (
+                    <div
+                      key={slot.label}
+                      className={`rounded-lg p-3 ${slot.color}`}
+                    >
+                      <div className="text-2xl font-heading font-bold">
+                        {slot.count}
+                      </div>
+                      <div className="text-sm font-medium">{slot.label}</div>
+                      <div className="text-xs opacity-60">{slot.desc}</div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Tee Sheet Quick Status */}
+          <Card className="border-0 ring-1 ring-green-800/10">
+            <CardContent className="py-5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-green-800/10 flex items-center justify-center">
+                    <Grid3X3 className="w-5 h-5 text-green-800" />
+                  </div>
+                  <div>
+                    <p className="font-medium text-sm">Tee Sheet</p>
+                    <p className="text-xs text-muted-foreground">
+                      {teeSheet
+                        ? `${teeSheet.status === "published" ? "Published" : "Draft"} — ${teeSheet.groups.length} groups`
+                        : "Not generated yet"}
+                    </p>
+                  </div>
+                </div>
+                <Link href="/manager/tee-sheet">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="border-green-800/20 text-green-800"
+                  >
+                    {teeSheet ? "View" : "Generate"}
+                  </Button>
+                </Link>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
         {/* Player Grid */}
         {stats && (
-          <Card className="border-0 ring-1 ring-green-800/10">
+          <Card className="border-0 ring-1 ring-green-800/10 lg:col-span-2">
             <CardHeader>
               <CardTitle className="text-xl">Player Status</CardTitle>
             </CardHeader>
@@ -131,7 +228,7 @@ export default function ManagerOverviewPage() {
                   No active players in the roster yet.
                 </p>
               ) : (
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
                   {stats.playerStatuses.map((player) => (
                     <div
                       key={player._id}

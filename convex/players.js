@@ -42,7 +42,7 @@ export const create = mutation({
 export const update = mutation({
     args: {
         id: v.id("players"),
-        name: v.string(),
+        name: v.optional(v.string()),
         phone: v.optional(v.string()),
         email: v.optional(v.string()),
         handicapIndex: v.optional(v.number()),
@@ -50,7 +50,12 @@ export const update = mutation({
     },
     handler: async (ctx, args) => {
         const { id, ...fields } = args;
-        await ctx.db.patch(id, fields);
+        const updates = {};
+        for (const [key, val] of Object.entries(fields)) {
+            if (val !== undefined)
+                updates[key] = val;
+        }
+        await ctx.db.patch(id, updates);
     },
 });
 export const toggleActive = mutation({

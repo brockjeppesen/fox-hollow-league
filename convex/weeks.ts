@@ -12,25 +12,45 @@ export const list = query({
 export const getCurrent = query({
   args: {},
   handler: async (ctx) => {
+    const now = Date.now();
+
+    // Prefer open weeks — pick the nearest future one
     const openWeeks = await ctx.db
       .query("weeks")
       .withIndex("by_status", (q) => q.eq("status", "open"))
       .collect();
 
     if (openWeeks.length > 0) {
+      const futureOpen = openWeeks
+        .filter((w) => w.playDate >= now)
+        .sort((a, b) => a.playDate - b.playDate);
+      if (futureOpen.length > 0) return futureOpen[0];
+      // If all open weeks are in the past, show the most recent
       return openWeeks.sort((a, b) => b.playDate - a.playDate)[0];
     }
 
+    // Fall back to drafts — pick the nearest future one
     const draftWeeks = await ctx.db
       .query("weeks")
       .withIndex("by_status", (q) => q.eq("status", "draft"))
       .collect();
 
     if (draftWeeks.length > 0) {
+      const futureDraft = draftWeeks
+        .filter((w) => w.playDate >= now)
+        .sort((a, b) => a.playDate - b.playDate);
+      if (futureDraft.length > 0) return futureDraft[0];
       return draftWeeks.sort((a, b) => b.playDate - a.playDate)[0];
     }
 
     return null;
+  },
+});
+
+export const listAll = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("weeks").collect();
   },
 });
 

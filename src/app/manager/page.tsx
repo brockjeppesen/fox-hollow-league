@@ -203,8 +203,21 @@ export default function ManagerOverviewPage() {
               value={currentWeek?._id}
               onValueChange={(val) => setSelectedWeekId(val as Id<"weeks">)}
             >
-              <SelectTrigger className="w-[280px] h-9 text-sm">
-                <SelectValue placeholder="Select week..." />
+              <SelectTrigger className="w-[320px] h-9 text-sm">
+                {currentWeek ? (
+                  <span className="truncate">
+                    {new Date(currentWeek.playDate).toLocaleDateString("en-US", {
+                      weekday: "short",
+                      month: "short",
+                      day: "numeric",
+                    })}
+                    {" — "}
+                    {(currentWeek.format || "TBD").substring(0, 25)}
+                    {currentWeek.status === "open" ? " 🟢" : currentWeek.status === "closed" ? " 🔴" : ""}
+                  </span>
+                ) : (
+                  <SelectValue placeholder="Select week..." />
+                )}
               </SelectTrigger>
               <SelectContent>
                 {sortedWeeks.map((w) => {

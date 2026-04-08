@@ -257,6 +257,122 @@ export const promoteFromWaitlist = mutation({
   },
 });
 
+export const getPlayerSubmissions = query({
+  args: { playerId: v.id("players") },
+  handler: async (ctx, args) => {
+    // Get all open weeks
+    const openWeeks = await ctx.db
+      .query("weeks")
+      .withIndex("by_status", (q) => q.eq("status", "open"))
+      .collect();
+
+    // Get player's submissions for those weeks
+    const submissions = [];
+    for (const week of openWeeks) {
+      const request = await ctx.db
+        .query("weeklyRequests")
+        .withIndex("by_week_player", (q) =>
+          q.eq("weekId", week._id).eq("playerId", args.playerId)
+        )
+        .first();
+
+      // Get partner names if submitted
+      let partnerNames: string[] = [];
+      if (request?.wantsWith?.length) {
+        const partners = await Promise.all(
+          request.wantsWith.map((id) => ctx.db.get(id))
+        );
+        partnerNames = partners.filter(Boolean).map((p) => p!.name);
+      }
+
+      submissions.push({
+        weekId: week._id,
+        playDate: week.playDate,
+        format: week.format,
+        deadline: week.deadline,
+        submitted: !!request,
+        playing: request?.playing,
+        timeSlot: request?.timeSlot,
+        partnerNames,
+      });
+    }
+
+    return submissions.sort((a, b) => a.playDate - b.playDate);
+  },
+});
+
+export const bulkUpsert = mutation({
+  args: {
+    weekIds: v.array(v.id("weeks")),
+    playerId: v.id("players"),
+    playing: v.boolean(),
+    wantsWith: v.array(v.id("players")),
+    avoid: v.array(v.id("players")),
+    timeSlot: v.optional(v.string()),
+    notes: v.optional(v.string()),
+  },
+  handler: async (ctx, args) => {
+    const { weekIds, ...data } = args;
+    for (const weekId of weekIds) {
+      const existing = await ctx.db
+        .query("weeklyRequests")
+        .withIndex("by_week_player", (q) =>
+          q.eq("weekId", weekId).eq("playerId", data.playerId)
+        )
+        .first();
+
+      if (existing) {
+        await ctx.db.patch(existing._id, {
+          ...data,
+          submittedAt: Date.now(),
+        });
+      } else {
+        await ctx.db.insert("weeklyRequests", {
+          weekId,
+          ...data,
+          submittedAt: Date.now(),
+        });
+      }
+    }
+  },
+});
+
+export const getLastSubmission = query({
+  args: { playerId: v.id("players") },
+  handler: async (ctx, args) => {
+    // Get all requests by this player across all weeks, sorted by submittedAt desc
+    const allRequests = await ctx.db
+      .query("weeklyRequests")
+      .collect();
+
+    const playerRequests = allRequests
+      .filter((r) => r.playerId === args.playerId)
+      .sort((a, b) => b.submittedAt - a.submittedAt);
+
+    if (playerRequests.length === 0) return null;
+
+    const latest = playerRequests[0];
+
+    // Get partner names
+    let partnerNames: string[] = [];
+    if (latest.wantsWith?.length) {
+      const partners = await Promise.all(
+        latest.wantsWith.map((id) => ctx.db.get(id))
+      );
+      partnerNames = partners.filter(Boolean).map((p) => p!.name);
+    }
+
+    return {
+      playing: latest.playing,
+      wantsWith: latest.wantsWith,
+      avoid: latest.avoid,
+      timeSlot: latest.timeSlot,
+      notes: latest.notes,
+      partnerNames,
+    };
+  },
+});
+
 export const slotCapacityInfo = query({
   args: { weekId: v.id("weeks") },
   handler: async (ctx, args) => {

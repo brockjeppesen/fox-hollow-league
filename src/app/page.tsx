@@ -160,13 +160,7 @@ export default function HomePage() {
                 <ArrowRight className="w-5 h-5" />
               </Link>
 
-              <Link
-                href="/manager"
-                className="inline-flex items-center justify-center gap-2 px-8 py-4 border border-cream/20 text-cream rounded-xl hover:bg-cream/10 active:scale-[0.98] transition-all text-center"
-              >
-                <Shield className="w-4 h-4 text-cream/50" />
-                Manager
-              </Link>
+
             </div>
 
             {/* Stats row */}
@@ -202,7 +196,12 @@ export default function HomePage() {
               />
               <p>Fox Hollow Golf Club</p>
             </div>
-            <p className="text-cream/20">American Fork, Utah · Est. 2026</p>
+            <div className="flex items-center gap-4">
+              <p className="text-cream/20">American Fork, Utah</p>
+              <Link href="/manager" className="text-cream/20 hover:text-cream/40 transition-colors text-xs">
+                Manager
+              </Link>
+            </div>
           </div>
         </footer>
       </div>

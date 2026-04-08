@@ -27,7 +27,7 @@ interface RequestFormProps {
     playing: boolean;
     wantsWith: Id<"players">[];
     timeSlot?: string;
-    notes?: string;
+
   } | null;
   preferences: {
     defaultPartners: Id<"players">[];
@@ -59,7 +59,7 @@ export function RequestForm({
   const [timeSlot, setTimeSlot] = useState<string>(
     existingRequest?.timeSlot ?? preferences?.defaultTimeSlot ?? "no_preference"
   );
-  const [notes, setNotes] = useState<string>(existingRequest?.notes ?? "");
+
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [wasWaitlisted, setWasWaitlisted] = useState(false);
@@ -86,7 +86,6 @@ export function RequestForm({
     setPlaying(lastSubmission.playing);
     setWantsWith(lastSubmission.wantsWith);
     setTimeSlot(lastSubmission.timeSlot ?? "no_preference");
-    setNotes(lastSubmission.notes ?? "");
     setUsedLastWeek(true);
   };
 
@@ -102,7 +101,7 @@ export function RequestForm({
         wantsWith: playing ? wantsWith : [],
         avoid: [],
         timeSlot: playing ? timeSlot || undefined : undefined,
-        notes: playing ? notes || undefined : undefined,
+        notes: undefined,
       });
 
       if (result && typeof result === "object" && "waitlisted" in result) {
@@ -138,7 +137,7 @@ export function RequestForm({
         wantsWithNames={wantsWithNames}
         wantsWithIds={playing ? wantsWith : []}
         timeSlot={timeSlot || undefined}
-        notes={notes || undefined}
+        notes={undefined}
         isUpdate={!!existingRequest}
         playerId={playerId}
         weekId={weekId}

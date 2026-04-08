@@ -29,7 +29,7 @@ interface ConfirmationScreenProps {
   wantsWithNames: string[];
   wantsWithIds?: Id<"players">[];
   timeSlot?: string;
-  notes?: string;
+
   isUpdate?: boolean;
   // New multi-week props
   playerId?: Id<"players">;
@@ -42,7 +42,6 @@ export function ConfirmationScreen({
   wantsWithNames,
   wantsWithIds,
   timeSlot,
-  notes,
   isUpdate,
   playerId,
   weekId,
@@ -71,7 +70,7 @@ export function ConfirmationScreen({
         wantsWith: playing && wantsWithIds ? wantsWithIds : [],
         avoid: [],
         timeSlot: playing ? timeSlot : undefined,
-        notes: playing ? notes : undefined,
+        
       });
       setCopied(true);
     } catch (e) {
@@ -137,14 +136,7 @@ export function ConfirmationScreen({
                 </div>
               )}
 
-              {notes && (
-                <div>
-                  <p className="text-cream/50 text-xs uppercase tracking-wider mb-1">
-                    Notes
-                  </p>
-                  <p className="text-cream">{notes}</p>
-                </div>
-              )}
+
             </>
           )}
         </div>

@@ -108,6 +108,25 @@ export const upsert = mutation({
             .query("weeklyRequests")
             .withIndex("by_week_player", (q) => q.eq("weekId", args.weekId).eq("playerId", args.playerId))
             .first();
+        // Check slot capacity for waitlist
+        let waitlisted = false;
+        if (args.playing && args.timeSlot && args.timeSlot !== "no_preference") {
+            const week = await ctx.db.get(args.weekId);
+            if (week?.slotCapacity) {
+                const slotKey = args.timeSlot;
+                const capacity = week.slotCapacity[slotKey];
+                if (capacity !== undefined) {
+                    const allRequests = await ctx.db
+                        .query("weeklyRequests")
+                        .withIndex("by_week", (q) => q.eq("weekId", args.weekId))
+                        .collect();
+                    const slotCount = allRequests.filter((r) => r.playing && r.timeSlot === args.timeSlot && !r.waitlisted && r.playerId !== args.playerId).length;
+                    if (slotCount >= capacity) {
+                        waitlisted = true;
+                    }
+                }
+            }
+        }
         const data = {
             weekId: args.weekId,
             playerId: args.playerId,
@@ -117,14 +136,17 @@ export const upsert = mutation({
             timeSlot: args.timeSlot,
             notes: args.notes,
             submittedAt: Date.now(),
+            waitlisted: args.playing ? waitlisted : undefined,
         };
+        let id;
         if (existing) {
             await ctx.db.patch(existing._id, data);
-            return existing._id;
+            id = existing._id;
         }
         else {
-            return await ctx.db.insert("weeklyRequests", data);
+            id = await ctx.db.insert("weeklyRequests", data);
         }
+        return { id, waitlisted };
     },
 });
 export const getSubmissionCounts = query({
@@ -159,11 +181,67 @@ export const slotCounts = query({
             no_preference: 0,
         };
         for (const req of playing) {
+            if (req.waitlisted)
+                continue;
             const slot = req.timeSlot ?? "no_preference";
             if (slot in counts) {
                 counts[slot]++;
             }
         }
         return counts;
+    },
+});
+export const getWaitlist = query({
+    args: { weekId: v.id("weeks") },
+    handler: async (ctx, args) => {
+        const requests = await ctx.db
+            .query("weeklyRequests")
+            .withIndex("by_week", (q) => q.eq("weekId", args.weekId))
+            .collect();
+        const waitlisted = requests.filter((r) => r.waitlisted);
+        const enriched = await Promise.all(waitlisted.map(async (req) => {
+            const player = await ctx.db.get(req.playerId);
+            return {
+                ...req,
+                playerName: player?.name ?? "Unknown",
+                playerHandicap: player?.handicapIndex,
+            };
+        }));
+        return enriched.sort((a, b) => a.submittedAt - b.submittedAt);
+    },
+});
+export const promoteFromWaitlist = mutation({
+    args: { requestId: v.id("weeklyRequests") },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.requestId, { waitlisted: false });
+    },
+});
+export const slotCapacityInfo = query({
+    args: { weekId: v.id("weeks") },
+    handler: async (ctx, args) => {
+        const week = await ctx.db.get(args.weekId);
+        if (!week?.slotCapacity)
+            return null;
+        const requests = await ctx.db
+            .query("weeklyRequests")
+            .withIndex("by_week", (q) => q.eq("weekId", args.weekId))
+            .collect();
+        const playing = requests.filter((r) => r.playing && !r.waitlisted);
+        const counts = { early: 0, mid: 0, late: 0 };
+        for (const req of playing) {
+            const slot = req.timeSlot;
+            if (slot && slot in counts) {
+                counts[slot]++;
+            }
+        }
+        return {
+            capacity: week.slotCapacity,
+            counts,
+            remaining: {
+                early: Math.max(0, week.slotCapacity.early - counts.early),
+                mid: Math.max(0, week.slotCapacity.mid - counts.mid),
+                late: Math.max(0, week.slotCapacity.late - counts.late),
+            },
+        };
     },
 });

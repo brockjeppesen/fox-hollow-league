@@ -22,6 +22,11 @@ export default defineSchema({
         format: v.optional(v.string()),
         golfGeniusEventId: v.optional(v.string()),
         status: v.string(),
+        slotCapacity: v.optional(v.object({
+            early: v.number(),
+            mid: v.number(),
+            late: v.number(),
+        })),
     }).index("by_status", ["status"]),
     weeklyRequests: defineTable({
         weekId: v.id("weeks"),
@@ -32,6 +37,7 @@ export default defineSchema({
         timeSlot: v.optional(v.string()),
         notes: v.optional(v.string()),
         submittedAt: v.number(),
+        waitlisted: v.optional(v.boolean()),
     })
         .index("by_week", ["weekId"])
         .index("by_week_player", ["weekId", "playerId"]),
@@ -53,4 +59,20 @@ export default defineSchema({
     })
         .index("by_token", ["token"])
         .index("by_player_week", ["playerId", "weekId"]),
+    scores: defineTable({
+        weekId: v.id("weeks"),
+        playerId: v.id("players"),
+        grossScore: v.optional(v.number()),
+        netScore: v.optional(v.number()),
+        points: v.optional(v.number()),
+        enteredAt: v.number(),
+    }).index("by_week", ["weekId"]).index("by_player", ["playerId"]),
+    standings: defineTable({
+        playerId: v.id("players"),
+        season: v.string(),
+        totalPoints: v.number(),
+        roundsPlayed: v.number(),
+        avgScore: v.optional(v.number()),
+        bestFinish: v.optional(v.number()),
+    }).index("by_season_points", ["season", "totalPoints"]),
 });

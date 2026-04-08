@@ -13,6 +13,9 @@ import {
   RefreshCw,
   Send,
   CheckCircle,
+  Copy,
+  Printer,
+  Check,
 } from "lucide-react";
 
 export default function TeeSheetPage() {
@@ -32,6 +35,7 @@ export default function TeeSheetPage() {
 
   const [generating, setGenerating] = useState(false);
   const [publishing, setPublishing] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   // Loading
   if (currentWeek === undefined || teeSheet === undefined) {
@@ -96,6 +100,41 @@ export default function TeeSheetPage() {
     }
   };
 
+  const handleCopy = () => {
+    if (!teeSheet || !currentWeek) return;
+
+    const dateStr = new Date(currentWeek.playDate).toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    });
+
+    const formatStr = currentWeek.format ? `${currentWeek.format}\n\n` : "";
+
+    const lines = teeSheet.groups.map((group: any) => {
+      const playerNames = group.players
+        .map((pid: string) => {
+          const p = playerMap.get(pid);
+          if (!p) return "Unknown";
+          const hcp = p.handicapIndex !== undefined ? ` (${p.handicapIndex.toFixed(1)})` : "";
+          return `${p.name}${hcp}`;
+        })
+        .join(", ");
+      return `${group.teeTime}  |  ${playerNames}`;
+    });
+
+    const text = `Fox Hollow Men's League — ${dateStr}\n${formatStr}${lines.join("\n")}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
   return (
     <div className="p-6 md:p-10">
       {/* Header */}
@@ -106,7 +145,31 @@ export default function TeeSheetPage() {
           </h1>
           <p className="text-muted-foreground mt-1">{playDateStr}</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 no-print">
+          {teeSheet && (
+            <>
+              <Button
+                onClick={handleCopy}
+                variant="outline"
+                className="border-green-800/20 text-green-800 hover:bg-green-800 hover:text-cream"
+              >
+                {copied ? (
+                  <Check className="w-4 h-4 mr-1.5 text-green-600" />
+                ) : (
+                  <Copy className="w-4 h-4 mr-1.5" />
+                )}
+                {copied ? "Copied!" : "Copy"}
+              </Button>
+              <Button
+                onClick={handlePrint}
+                variant="outline"
+                className="border-green-800/20 text-green-800 hover:bg-green-800 hover:text-cream"
+              >
+                <Printer className="w-4 h-4 mr-1.5" />
+                Print
+              </Button>
+            </>
+          )}
           {teeSheet && teeSheet.status === "draft" && (
             <Button
               onClick={handlePublish}
@@ -195,12 +258,21 @@ export default function TeeSheetPage() {
           </CardContent>
         </Card>
       ) : (
-        <TeeSheetView
-          groups={teeSheet.groups as any}
-          playerMap={playerMap as any}
-          status={teeSheet.status}
-          generatedAt={teeSheet.generatedAt}
-        />
+        <>
+          {/* Print-only header */}
+          <div className="hidden print:block mb-6">
+            <h2 className="text-2xl font-bold">Fox Hollow Men&apos;s League — {playDateStr}</h2>
+            {currentWeek.format && (
+              <p className="text-base text-gray-600 mt-1">{currentWeek.format}</p>
+            )}
+          </div>
+          <TeeSheetView
+            groups={teeSheet.groups as any}
+            playerMap={playerMap as any}
+            status={teeSheet.status}
+            generatedAt={teeSheet.generatedAt}
+          />
+        </>
       )}
     </div>
   );

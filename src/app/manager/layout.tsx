@@ -12,6 +12,8 @@ import {
   X,
   Grid3X3,
   Calendar,
+  Clock,
+  Trophy,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -20,6 +22,8 @@ const navItems = [
   { label: "Overview", href: "/manager", icon: LayoutDashboard },
   { label: "Requests", href: "/manager/requests", icon: ClipboardList },
   { label: "Tee Sheet", href: "/manager/tee-sheet", icon: Grid3X3 },
+  { label: "Scores", href: "/manager/scores", icon: Trophy },
+  { label: "History", href: "/manager/history", icon: Clock },
   { label: "Schedule", href: "/manager/schedule", icon: Calendar },
   { label: "Roster", href: "/manager/roster", icon: Users },
   { label: "Links", href: "/manager/links", icon: Link2 },

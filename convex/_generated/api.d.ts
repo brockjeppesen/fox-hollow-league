@@ -11,6 +11,8 @@
 import type * as players from "../players.js";
 import type * as preferences from "../preferences.js";
 import type * as requests from "../requests.js";
+import type * as scores from "../scores.js";
+import type * as standings from "../standings.js";
 import type * as teeSheet from "../teeSheet.js";
 import type * as tokens from "../tokens.js";
 import type * as weeks from "../weeks.js";
@@ -25,6 +27,8 @@ declare const fullApi: ApiFromModules<{
   players: typeof players;
   preferences: typeof preferences;
   requests: typeof requests;
+  scores: typeof scores;
+  standings: typeof standings;
   teeSheet: typeof teeSheet;
   tokens: typeof tokens;
   weeks: typeof weeks;

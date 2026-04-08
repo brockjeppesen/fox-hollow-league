@@ -328,11 +328,19 @@
     background: white !important;
     color: black !important;
     font-size: 11pt;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
 
   .no-print,
   aside,
   nav,
+  header,
+  .md\:hidden,
+  [class*="no-print"] {
+    display: none !important;
+  }
+
   button {
     display: none !important;
   }
@@ -346,18 +354,56 @@
     max-width: none !important;
   }
 
+  /* Sidebar hidden */
+  .min-h-screen.bg-cream.flex > aside {
+    display: none !important;
+  }
+
+  .min-h-screen.bg-cream.flex > main {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Show print-only elements */
+  .print\:block {
+    display: block !important;
+  }
+
   /* Tee sheet cards print nicely */
   .tee-sheet-card {
     break-inside: avoid;
     border: 1px solid #ccc !important;
     box-shadow: none !important;
     margin-bottom: 8px;
+    background: white !important;
   }
 
   .tee-sheet-card * {
     animation: none !important;
     opacity: 1 !important;
   }
+
+  /* Clean up summary bar */
+  .tee-sheet-card .premium-card:hover {
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Compact player rows */
+  .tee-sheet-card .bg-white\/70 {
+    padding: 4px 8px !important;
+  }
+
+  /* Force black text */
+  * {
+    color: black !important;
+  }
+
+  /* Keep slot stripe colors */
+  .bg-green-700 { background-color: #2d5a3d !important; }
+  .bg-blue-600 { background-color: #2563eb !important; }
+  .bg-amber-500 { background-color: #f59e0b !important; }
 }
 
 /* Prevent iOS Safari zoom on input focus */

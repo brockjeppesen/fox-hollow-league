@@ -31,6 +31,13 @@ export const metadata: Metadata = {
     "Fox Hollow Men's Golf League — American Fork, Utah. Weekly scheduling, pairings, and league management.",
   icons: {
     icon: "/favicon.ico",
+    apple: "/icon-192.png",
+  },
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "FH League",
   },
 };
 

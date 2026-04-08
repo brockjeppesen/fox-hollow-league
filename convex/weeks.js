@@ -75,3 +75,24 @@ export const updateStatus = mutation({
         await ctx.db.patch(args.id, { status: args.status });
     },
 });
+export const updateSlotCapacity = mutation({
+    args: {
+        id: v.id("weeks"),
+        slotCapacity: v.optional(v.object({
+            early: v.number(),
+            mid: v.number(),
+            late: v.number(),
+        })),
+    },
+    handler: async (ctx, args) => {
+        await ctx.db.patch(args.id, { slotCapacity: args.slotCapacity });
+    },
+});
+export const listCompleted = query({
+    args: {},
+    handler: async (ctx) => {
+        const weeks = await ctx.db.query("weeks").collect();
+        // Return all weeks sorted by date descending (past first)
+        return weeks.sort((a, b) => b.playDate - a.playDate);
+    },
+});
